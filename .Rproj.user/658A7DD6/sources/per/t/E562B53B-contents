@@ -1,0 +1,382 @@
+---
+title: 'Study 2: Analysis'
+date: 'This version: September 2020'
+output: 
+  html_document: 
+    pandoc_args: ["--lua-filter=color-text.lua"]
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: united
+  pdf_document: 
+    pandoc_args: ["--lua-filter=color-text.lua"]
+    keep_tex: true
+header-includes:
+  - \preauthor{\centering\large}
+  - \predate{\centering\normalsize}
+  - \pretitle{\centering\Large\textbf}
+  - \usepackage{setspace}\onehalfspacing
+  - \usepackage{xcolor}
+  - \usepackage[shortlabels]{enumitem}
+  - \usepackage{pgf,tikz, mathabx}
+  - \usetikzlibrary{positioning}
+editor_options:
+  chunk_output_type: console
+---
+<style>
+
+table, td, th {
+  border: none;
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+</style>
+
+```{cat, engine.opts = list(file = "color-text.lua")}
+Span = function(span)
+  color = span.attributes['color']
+  -- if no color attribute, return unchange
+  if color == nil then return span end
+  
+  -- tranform to <span style="color: red;"></span>
+  if FORMAT:match 'html' then
+    -- remove color attributes
+    span.attributes['color'] = nil
+    -- use style attribute instead
+    span.attributes['style'] = 'color: ' .. color .. ';'
+    -- return full span element
+    return span
+  elseif FORMAT:match 'latex' then
+    -- remove color attributes
+    span.attributes['color'] = nil
+    -- encapsulate in latex code
+    table.insert(
+      span.content, 1,
+      pandoc.RawInline('latex', '\\textcolor{'..color..'}{')
+    )
+    table.insert(
+      span.content,
+      pandoc.RawInline('latex', '}')
+    )
+    -- returns only span content
+    return span.content
+  else
+    -- for other format return unchanged
+    return span
+  end
+end
+```
+
+<!-- # Packages: -->
+
+```{r,echo=FALSE,eval=TRUE,message=FALSE,warning=FALSE}
+rm(list=ls())
+library("dplyr")
+library("ggplot2")
+library(Hmisc)
+library(gridExtra)
+library(grid)
+library("stargazer")
+library("hrbrthemes")
+#hrbrthemes::import_roboto_condensed()
+library("quanteda")
+library("readtext")
+library("tidyverse")
+library("knitr")
+library("papeR")
+library(tidyr)
+library(kableExtra)
+library(ggpubr)
+library("printr")
+library("tab")
+#library("lfe")
+library(sjPlot)
+library(clusterSEs)
+library(viridis)
+library(BBmisc)
+library(miceadds)
+library(estimatr)
+```
+
+```{r call-data, echo=FALSE, eval=TRUE, message=FALSE,warning=FALSE}
+#Clean data
+test_data <- read.csv("Praise and Empathy -- Study 2_October 11, 2020_18.42.csv",header=T, na.strings=c("", " ", "NA"))
+test_data <- test_data[3:nrow(test_data),]
+test_data <- as.data.frame(test_data)
+test_data<- test_data[, c("consent", "cards1", "pa", "pb_1", "pb_2", "pb_3", "pc", 
+                       "cards2", "p2a", "p2b_1", "p2b_2", "p2b_3", "p2c", "cards3",
+                       "Aa", "Ab_1", "Ab_2", "Ab_3", "Ac", "cards4", "Ba", "Bb_1",
+                       "Bb_2", "Bb_3", "Bc", "cards5", "Ca", "Cb_1", "Cb_2", "Cb_3", "Cc",
+                       "pair1r_1", "pair2r_1", "pair3r_1", "pair4r_1", "pair5r_1", "pair6r_1",
+                       "pair7r_1", "pair8r_1", "pair9r_1", "pair10r_1", "pair11r_1", "pair12r_1",
+                       "Q295", "Q296_1", "Q296_2", "Q296_3", "Q297", "post1", "post2", "post3",
+                       "post4", "post5", "post6", "post7", "post8", "post9", "post10", "post11_1",
+                       "post11_2","post11_3","post11_4","post11_5","post11_6","post11_7","post11_8",
+                       "post13_1", "post14_1", "post15_1", "post16_1", "post17", 
+                        "age","sex","race","education","income","religion", "pres_approval",
+                       "ideology", "part_id")]
+```
+
+```{r,echo=FALSE,eval=TRUE,message=FALSE,warning=FALSE}
+
+# ----------------------------------------------------------------------
+# Function 1: skip_to_attrite()
+# ----------------------------------------------------------------------
+
+#This function takes a matrix of 0,1s in which 1 indicates missingness (NA) per respondent per question and removes `skippers`. Skippers are individuals who have a 0s in their row followed by 1s.
+
+skip_to_attrite<-function(arg){
+    n_col = length(arg)
+    for (j in 1:n_col)
+       {
+      if (prod(arg[j:n_col])==1)
+        {
+          arg[j] = 1
+        } 
+      else 
+        {
+          arg[j] = 0
+         }
+    }
+    return(arg)
+}
+# ----------------------------------------------------------------------
+# Function 2: attrition()
+# ----------------------------------------------------------------------
+
+#Function to transform dataframe into an attrition dataframe. The attrition dataframe indicates, per variable, how many respondents attrited [note that this dataframe does not include `skippers`, i.e. respondents who skipped questions]. The dataframe also includes a variable that is the proportion of total N attrited, calculated as number of attrited respondents / number of respondents entering into the question.
+
+#only works if you know the order of survey questions. 
+
+attrition <- function(data)
+  {
+  #required packages
+  require(ggplot2)
+  require(viridis)
+  require(Hmisc)
+  require(dplyr)
+  
+  #make sure arguments are correct
+  if(is.null(data))
+  stop("Data is null, please supply value")
+  
+  if(class(data)!="data.frame")
+  stop("Data must be data.frame")
+  
+  #for each missing value in the dataframe `dataset` give value 1, otherwise give 0.
+  data <- apply(data,2,function(x) {ifelse(is.na(x),1,0)})
+
+  #change `skippers` into 0 (we are only interested in respondents that attrited).
+ 
+  data<-apply(data,1,skip_to_attrite)
+  data<-t(data) #transpose data
+
+  data2<-data.frame(data)
+
+  #transform into a long dataframe, such that the variable `attrited` is the number of missing observations per variable.
+ data <- data.frame(colSums(data2))
+ colnames(data) <- "attrited"
+ 
+ #transform `attrited` to measure how many respondents attrited during each question, rather than how many missing values are in each question.
+ attrite_2<-data$attrited
+ num_dropped <- data[-1,] - data[-nrow(data),]
+ data$attrited<- c(data[1,], num_dropped)
+ data$attrite_2<-attrite_2
+ 
+  #add variable `proportion` = number of attrited respondents / number of respondents entering into the question
+ data$n_prev <- nrow(data2) - as.numeric(data$attrite_2)
+ data$n_prev <- Lag(data$n_prev, +1)
+ data$n_prev[1] <- nrow(data2)
+ data$proportion <-    round(data$attrited/data$n_prev,2)
+ data$n_prev <- NULL
+ data$attrite_2 <- NULL
+ 
+ #proportion of attrited / starting N
+ data$proportion2 <- round(data$attrited/nrow(data2),2)
+ 
+ #add variable `questions` = the name of each variable in the original dataframe.
+ data$questions <- rownames(data)
+ rownames(data) <- c()
+ 
+  #return dataframe
+  return(data)
+}
+
+attrition_dataset<-attrition(data = test_data)
+
+# ----------------------------------------------------------------------
+# Function 3: plot_attrition()
+# ----------------------------------------------------------------------
+
+#Function that allows you to plot attrition in survey data.
+
+#`data` must be data.frame. Note that this function works only if the order of variables = order of questions in the survey.
+
+#`freq` is a logical argument that notes the Y axis of the attrition plot. Default is freq=TRUE, which is the frequency of attrited respondents. When freq=FALSE Y axis is the proportion of total N attrited, calculated as number of attrited respondents / number of respondents entering into the question.
+
+#`treatment` is a character of name(s) of question(s) in which treatments were administered. Marked in the plot with a red vertical line.
+
+#`pre_treatment` is a character of name(s) of pre-treatment question(s). Marked in the plot with a green vertical line.
+
+#`DV` is a character of name(s) of outcome question(s). Marked in the plot with a blue vertical line.
+
+#`other_group_var` is a character of name(s) of question(s), corresponds to `other_group` category, specified by users. Marked in the plot with a purple vertical line. Note that both `other_group` and `other_group_var` must be specified to use one of the functions.
+
+#`other_group` is a character of the name of the group of variables specified in `other_group_var`. Note that both `other_group` and `other_group_var` must be specified to use one of the functions.
+
+plot_attrition <- function(data
+                           ,freq = TRUE
+                           ,treatment = NULL
+                           ,pre_treatment = NULL
+                           ,DV = NULL
+                           ,other_group = NULL
+                           ,other_group_var = NULL)
+  { 
+  #required packages
+  require(ggplot2)
+  require(viridis)
+  require(Hmisc)
+  require(dplyr)
+
+  #make sure arguments are correctly specified
+  if(is.null(data))
+  stop("Data is null, please supply value")
+  
+  if(class(data)!="data.frame")
+  stop("Data must be data.frame")
+  
+  if(class(freq)!="logical")
+  stop("Freq must be logical. Default is freq=TRUE.")
+  
+  if(!is.null(treatment) & class(treatment)!="character")
+  stop("Treatment must be character")
+  
+  if(!is.null(pre_treatment) & class(pre_treatment)!="character")
+  stop("Pre_treatment must be character")
+  
+  if(!is.null(DV) & class(DV)!="character")
+  stop("DV must be character")
+  
+  if(!is.null(other_group) & class(other_group)!="character")
+  stop("Other_group must be character")
+  
+  if(!is.null(other_group_var) & class(other_group_var)!="character")
+  stop("Other_group_var must be character")
+  
+  #both other_group_var and group_var must be specified to use either:
+  if(!is.null(other_group_var) & is.null(other_group))
+  stop("Specify name of other_group")
+  
+  if(is.null(other_group_var) & !is.null(other_group))
+  stop("Specify other_group_var")
+
+ 
+ #Begin by creating an attrition dataframe
+ #for each missing value in the dataframe `dataset` give value 1, otherwise give 0.
+  data <- apply(data,2,function(x) {ifelse(is.na(x),1,0)})
+
+  #change `skippers` into 0 (we are only interested in respondents that attrited).
+ 
+  data<-apply(data,1,skip_to_attrite)
+  data<-t(data) #transpose data
+
+  data2<-data.frame(data)
+  
+  #transform into a long dataframe, such that the variable `attrited` is the number of missing observations per variable.
+ data <- data.frame(colSums(data2))
+ colnames(data) <- "attrited"
+ 
+ #transform `attrited` to measure how many respondents attrited during each question, rather than how many missing values are in each question.
+ attrite_2<-data$attrited
+ num_dropped <- data[-1,] - data[-nrow(data),]
+ data$attrited<- c(data[1,], num_dropped)
+ data$attrite_2<-attrite_2
+ 
+  #add variable `proportion` = number of attrited respondents / number of respondents entering into the question
+ data$n_prev <- nrow(data2) - as.numeric(data$attrite_2)
+ data$n_prev <- Lag(data$n_prev, +1)
+ data$n_prev[1] <- nrow(data2)
+ data$proportion <-   round(data$attrited/data$n_prev,2)
+ data$n_prev <- NULL
+ data$attrite_2 <- NULL
+ 
+ #add variable `questions` = the name of each variable in the original dataframe.
+ data$questions <- rownames(data)
+ rownames(data) <- c()
+ data$questions <- factor(data$questions, levels=data$questions)
+
+  #Next, plot attrition
+  #set colors for plots
+   tmp_colors<-viridis(n=2,alpha=0.6,begin=0.25,end=1,direction=1,option="D")
+   
+  #create figure for if treatment is not NULL and freq = TRUE
+    p <- data %>%
+    ggplot(aes(questions,{if(freq==FALSE){proportion}else{attrited}})) + 
+      #add if statement based on freq
+          
+      geom_histogram(color="#e9ecef", alpha=0.6, stat = 'identity') +
+      scale_fill_manual(values=tmp_colors) 
+    
+     #vlines
+      
+      #add vline for other_group, only if it isn't null
+    if(!is.null(other_group)) {
+      p <- p + geom_vline(data= data.frame(type=other_group, 
+                                col=other_group, other_group_var = other_group_var),
+                                aes(colour=col, xintercept = match(other_group_var,data$questions)), #other_group_var), 
+                                size = 0.7, show.legend = TRUE)} 
+      #add vline for treatment, only if it isn't null   
+    if(!is.null(treatment)){
+      p <- p + geom_vline(data= data.frame(type="Treatment", 
+                                col="Treatment", treatment = treatment),
+                                aes(colour=col, xintercept = treatment), 
+                                size = 0.7, show.legend = TRUE)}
+      #add vline for pre_treatment, only if it isn't null   
+    if(!is.null(pre_treatment)){
+      p <- p + geom_vline(data= data.frame(type="Pre-Treatment", 
+                                col="Pre-Treatment", pre_treatment = pre_treatment),
+                                aes(colour=col, xintercept = pre_treatment), 
+                                size = 0.7, show.legend = TRUE)}
+      #add vline for DV, only if it isn't null   
+    if(!is.null(DV)){
+      p <- p + geom_vline(data= data.frame(type="Outcome", 
+                                col="Outcome", DV = DV),
+                                aes(colour=col, xintercept = DV), 
+                                size = 0.7, show.legend = TRUE)} 
+    
+    #delete gray background  
+    
+    p <- p + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                          panel.background = element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 1, size = 8))   
+      
+     #add legend details manually  
+    p<- p + scale_colour_manual(name="Legend"
+                      ,breaks = c("Treatment","Pre-Treatment","Outcome",other_group)
+                      ,labels = c("Treatment","Pre-Treatment","Outcome",other_group)
+                      ,values = c("red","green4","blue3","purple")
+                     ) +
+      
+        
+    labs(x = "Survey Questions") + #titles
+    labs(y = {if(freq==FALSE){"Proportion of respondents attrited"}
+      else{"Respondents attrited"}}) #add if statement based on freq==FALSE
+   
+     #print the plot
+    print(p)
+}
+
+plot_attrition(data = test_data
+               ,treatment = "Ca"
+               ,pre_treatment = c("cards1", "pb_3")
+               ,DV = c("Cb_4", "pair1r_1")
+               ,other_group = "Mediators"
+               ,other_group_var = "Cb_2"
+               #,freq = FALSE
+               )   
+```
