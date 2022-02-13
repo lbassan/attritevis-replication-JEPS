@@ -743,13 +743,13 @@ test_data$X<-NULL #remove running numbers
 The experiment manipulates peer-praise and measures empathy in a behavioral task. There are two arms in the peer-praise randomization: peer-praise and no praise (control). In the first arm, a word cloud of praise, drawn from real praise collected in a pilot study, is given for people who behave empathetically, with a line of text about peer group average thermometer ratings towards people who are empathetic -- "Peers of yours on this platform have said they hold favorable feelings towards people who engage in empathetic behavior, with an average of 7.9, on a scale of 0 (least favorable) to 10 (most favorable), That same peer group provided real feedback for empathetic behavior which is pictured in the word cloud below”. The word cloud is presented in  figure 1. Respondents in the control condition do not receive any additional information.
 
 ```{r fig1, echo=FALSE, fig.cap="Figure 1: Word cloud of real praise presented to treated respondents.", out.width = '50%'}
-knitr::include_graphics("praise.png")
+knitr::include_graphics("Figures/praise.png")
 ```
 
 Our outcome of interest is choosing to empathize with an image in a behavioral task. In the task, subjects choose between two "cards" a FEEL and a DESCRIBE task, that correspond to an empathy or objective task, in which they empathize/describe an image of a man. The cards are presented in figure 2. Below is a description of the survey, with information on the various variables collected.
 
 ```{r fig2, echo=FALSE, fig.cap="Figure 2: Choice task FEEL and DESCRIBE cards.", out.width = '50%'}
-knitr::include_graphics("cards.png")
+knitr::include_graphics("Figures/cards.png")
 ```
 
 After answering pre-treatment covariates, respondents in the study were asked to complete two practice rounds of the main empathy task. After completing the practice rounds, respondents complete three trials of the above mentioned tasks. Before each task, respondents are randomized into treatment and control groups. Treated respondents received the light-touch peer-praise treatment. During each trial, before respondents select between the FEEL and DESCRIBE tasks, happiness, the hypothesized mechanism, is measured. Treatment variables are labeled `treat1`, `treat2`, etc. Outcome variables, which are the choice-task card questions, are labeled `card1`, `card2`, etc. Mediators, which are measures of the emotion happiness, are labeled `Happy_1_1`, `Happy_1_2`... `Happy_2_1`, `Happy_2_2`... `Happy_3_1`, `Happy_3_1`, etc. After respondents complete all three trials post-task and post-treatment covariates are collected. Importantly, the dataframe `test_data` is organized based on the survey questions order. That is, if Q1 came before Q2 in the survey, the variable Q1 comes before the variable Q2 in the dataframe. 
