@@ -1,5 +1,5 @@
 ---
-title: '`attritevis` Package: An R Vignette'
+title: '`attritevis_test` Package: An R Vignette'
 date: 'This version: January 2022'
 output: 
   html_document: 
