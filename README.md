@@ -1,6 +1,7 @@
 # `attritevis` Package
 
-Functions and vignette for `attritevis` package by Adeline Lo, Jonathan Renshon & Lotem Bassan-Nygate. 
+Functions and accompanying vignette for the `attritevis` package by Lo, Renshon, and Bassan-Nygate.
+Functions help assess and adjust for attrition in experiments.
 
 ## Files
 
@@ -10,3 +11,4 @@ Functions and vignette for `attritevis` package by Adeline Lo, Jonathan Renshon 
 ### Figures folder
 
 Includes all figures that are called for in the vignette.
+
