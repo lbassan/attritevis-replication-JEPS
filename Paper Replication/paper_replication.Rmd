@@ -1,0 +1,386 @@
+---
+title: 'Replication Code for Figures in `A Practical Guide to Dealing with Attrition in Political Science Experiments`'
+date: 'This version: February 2022'
+output: 
+  html_document: 
+    pandoc_args: ["--lua-filter=color-text.lua"]
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: united
+  pdf_document: 
+    pandoc_args: ["--lua-filter=color-text.lua"]
+    keep_tex: true
+header-includes:
+  - \preauthor{\centering\large}
+  - \predate{\centering\normalsize}
+  - \pretitle{\centering\Large\textbf}
+  - \usepackage{setspace}\onehalfspacing
+  - \usepackage{xcolor}
+  - \usepackage[shortlabels]{enumitem}
+  - \usepackage{pgf,tikz, mathabx}
+  - \usetikzlibrary{positioning}
+editor_options:
+  chunk_output_type: console
+---
+<style>
+
+table, td, th {
+  border: none;
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+</style>
+
+```{cat, engine.opts = list(file = "color-text.lua")}
+Span = function(span)
+  color = span.attributes['color']
+  -- if no color attribute, return unchange
+  if color == nil then return span end
+  
+  -- tranform to <span style="color: red;"></span>
+  if FORMAT:match 'html' then
+    -- remove color attributes
+    span.attributes['color'] = nil
+    -- use style attribute instead
+    span.attributes['style'] = 'color: ' .. color .. ';'
+    -- return full span element
+    return span
+  elseif FORMAT:match 'latex' then
+    -- remove color attributes
+    span.attributes['color'] = nil
+    -- encapsulate in latex code
+    table.insert(
+      span.content, 1,
+      pandoc.RawInline('latex', '\\textcolor{'..color..'}{')
+    )
+    table.insert(
+      span.content,
+      pandoc.RawInline('latex', '}')
+    )
+    -- returns only span content
+    return span.content
+  else
+    -- for other format return unchanged
+    return span
+  end
+end
+```
+
+<!-- # Packages: -->
+
+```{r,echo=FALSE,eval=TRUE,message=FALSE,warning=FALSE}
+rm(list=ls())
+library(viridis)
+require(tidyverse)
+require(waffle)
+require(grid)
+require(ggpattern)
+require(ggpubr)
+
+source("../attritevis_fns.R")
+```
+
+Code to replicate figures from the paper A Practical Guide to Dealing with Attrition in Political Science Experiments by Adeline Lo, Jonathan Renshon, and Lotem Bassan-Nygate.
+
+
+# Fiure 1: Experimental papers in fullJEPScorpus and their discussion of attrition
+
+```{r waffle, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+#Reading in CSV Data
+attrition <- read_csv("lit_review.csv")
+
+
+#Functions to remove "*" and change "Yes" to 1 and "No" to 0
+remove_star <- function(x) {
+  return(str_extract(x, "Yes|No"))
+}
+
+yesno_onezero <- function(x) {
+  return(case_when(x == "Yes" ~ 1,
+                   x == "No" ~ 0))
+}
+
+attrition <- attrition %>% 
+  mutate_at(c(7:14), remove_star) %>%
+  mutate_at(c(7:14), yesno_onezero)
+
+
+#Creating table of proportions
+prop_att <- mean(attrition$Attrition)
+prop_noatt <- mean(attrition$`0 Attrition`[attrition$Attrition == 1])
+prop_attdv <- mean(attrition$`Response Rate DV`[attrition$Attrition == 1])
+prop_quan <- mean(attrition$`Quantified Attrition`[attrition$Attrition == 1 & attrition$`0 Attrition` == 0 & attrition$`Response Rate DV` == 0])
+prop_adj <- mean(attrition$`Sample Adjustments`[attrition$Attrition == 1 & attrition$`0 Attrition` == 0 & attrition$`Response Rate DV` == 0])
+
+attrition_summary <- as_tibble(data.frame(
+  c("Measurement",
+    "Proportion that mention attrition",
+    "Proportion \"no attrition\"",
+    "Proportion DV",
+    "Proportion quantify",
+    "Proportion adjust"),
+  c("Value",
+    prop_att,
+    prop_noatt,
+    prop_attdv,
+    prop_quan,
+    prop_adj)
+))
+
+
+#Creating variable for the waffle plot
+count <- attrition %>% 
+  mutate(waffle = case_when(`Sample Adjustments` == 1 ~ "Attrition mentioned, quantified, analyzed",
+                            Attrition == 1 & `0 Attrition` == 0 & `Response Rate DV` == 0 & `Sample Adjustments` == 0 & `Quantified Attrition` == 1 ~ "Attrition mentioned and quantified",
+                            Attrition == 1 & `0 Attrition` == 0 & `Response Rate DV` == 0 & `Sample Adjustments` == 0 & `Quantified Attrition` == 0 ~ "Attrition mentioned only",
+                            `Response Rate DV` == 1 ~ "Attrition is DV",
+                            `0 Attrition` == 1 ~ "Attrition mentioned - none in study",
+                            Attrition == 0 ~ "No mention of attrition")) %>% 
+  group_by(waffle) %>%
+  summarise(n = n())
+
+#Reordering to make legend easier to read and plot look better
+count <- count[c(5,3,2,4,1,6),]
+
+#Creating waffle plot
+case_counts <- count$n
+names(case_counts) <- count$waffle
+
+waffle(case_counts, colors = c(
+  "#fcba03", #For Attrition mentioned, quantified, analyzed
+  "#e8803f", #For Attrition mentioned and quantified
+  "#965ef7", #For Attrition mentioned, none in study
+  "#595959", #For Attrition mentioned only
+  "#5eccf7", #For Attrition is DV
+  "#ff6666"  #For No mention of attrition
+  )) +
+  theme(legend.key.size = unit(10, "mm"), legend.text = element_text(size = 12))
+
+```
+
+# Figure 3: Attrition timeline visualization
+
+```{r timeline, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+
+plot_withbars <- function(data, title)
+{ 
+  #required packages
+  require(ggplot2)
+  require(viridis)
+  require(Hmisc)
+  require(dplyr)
+ 
+  #Begin by creating an attrition dataframe
+  #for each missing value in the dataframe `dataset` give value 1, otherwise give 0.
+  data <- apply(data,2,function(x) {ifelse(is.na(x),1,0)})
+  
+  #change `skippers` into 0 (we are only interested in respondents that attrited).
+  
+  data<-apply(data,1,skip_to_attrite)
+  data<-t(data) #transpose data
+  
+  data2<-data.frame(data)
+  
+  #transform into a long dataframe, such that the variable `attrited` is the number of missing observations per variable.
+  data <- data.frame(colSums(data2))
+  colnames(data) <- "attrited"
+  
+  #transform `attrited` to measure how many respondents attrited during each question, rather than how many missing values are in each question.
+  attrite_2<-data$attrited
+  num_dropped <- data[-1,] - data[-nrow(data),]
+  data$attrited<- c(data[1,], num_dropped)
+  data$attrite_2<-attrite_2
+  
+  #add variable `proportion` = number of attrited respondents / starting N.
+  data$n_prev <- NULL
+  data$attrite_2 <- NULL
+  data$proportion <-    round(data$attrited/nrow(data2),2)
+  
+  #add variable `questions` = the name of each variable in the original dataframe.
+  data$questions <- rownames(data)
+  rownames(data) <- c()
+  
+  
+    tmp_colors<-viridis(n=2,alpha=0.6,begin=0.25,end=1,direction=1,option="D")
+    data$questions <- factor(data$questions, levels=data$questions)
+    data$questions<-as.numeric(data$questions)
+
+p <- data %>%
+  
+  ggplot(aes(questions,proportion)) +
+  
+  
+  geom_rect_pattern(aes(xmin= 4.7,
+                        xmax = 10,
+                        ymin = 0,
+                        ymax = Inf), 
+                    pattern = 'stripe',
+                    pattern_fill = 'pink',
+                    pattern_colour ='pink',
+                    pattern_size = 3.5,
+                    pattern_alpha = 0.02,
+                    pattern_density = 0.02,
+                    alpha = 0.02,
+                    fill    = 'white') +
+  
+  geom_rect_pattern(aes(xmin=1,
+                        xmax = 4.5,
+                        ymin = 0,
+                        ymax = Inf), 
+                    pattern = 'stripe',
+                    pattern_fill = 'gray',
+                    pattern_colour ='gray',
+                    pattern_size = 3.5,
+                    pattern_alpha = 0.02,
+                    pattern_density = 0.02,
+                    alpha = 0.02,
+                    fill    = 'white') +
+  
+  #add if statement based on freq
+  
+  geom_histogram(color="#e9ecef", alpha=0.6, stat = 'identity') +
+  
+  scale_x_continuous(breaks=c(1,2,3,4,5,6,7,8,9,10),
+                     labels=c("Q1", "Q2", "Q3", "Q4", "Q5","Q6","Q7","Q8"
+                              ,"Q9","Q10"))
+
+scale_fill_manual(values=tmp_colors) 
+
+#vlines
+
+pre_treatment <- as.numeric(c(1,2,3,4))
+treatment <- as.numeric(5)
+DV<- as.numeric(c(6,7))
+post_treatment <- as.numeric(c(8,9,10))
+
+p <- p + geom_vline(data= data.frame(type="Pre-Treatment", 
+                                     col="Pre-Treatment", pre_treatment = pre_treatment),
+                    aes(colour=col, xintercept = pre_treatment), 
+                    size = 0.7, show.legend = TRUE)
+
+p <- p + geom_vline(data= data.frame(type="Treatment", 
+                                     col="Treatment", treatment = treatment),
+                    aes(colour=col, xintercept = treatment), 
+                    size = 2, show.legend = TRUE)
+
+p <- p + geom_vline(data= data.frame(type="Outcome", 
+                                     col="Outcome", DV = DV),
+                    aes(colour=col, xintercept = DV), 
+                    size = 0.7, show.legend = TRUE)
+
+p <- p + geom_vline(data= data.frame(type="Post-Treatment", 
+                                     col="Post-Treatment", post_treatment = post_treatment),
+                    aes(colour=col, xintercept = post_treatment), 
+                    size = 0.7, show.legend = TRUE)
+
+
+p <- p + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+               panel.background = element_blank(),
+               axis.text.x = element_text(angle = 90, hjust = 1, size = 8))   
+
+#add legend details manually  
+p<- p + scale_colour_manual(name="Legend"
+                            ,breaks = c("Pre-Treatment","Treatment",
+                                        "Outcome","Post-Treatment")
+                            ,labels = c("Pre-Treatment","Treatment",
+                                        "Outcome","Post-Treatment")
+                            ,values = c("goldenrod3","firebrick","royalblue3","seagreen")
+) +
+  labs(x = "Survey Questions") + #titles
+  labs(y = "Proportion of respondents attrited") +
+  ggtitle(title) + ylim(0,1) 
+
+}
+
+
+#Attition post-treatment (throughout survey)
+n <- 1000
+df <- data.frame(
+  Q1 = sample(c(18:90), n, rep = TRUE), #age
+  Q2 = sample(c("m", "f"), n, rep = TRUE, prob = c(0.55, 0.45)), #sex
+  Q3 = sample(c(0,1), n, rep = TRUE), #other general pre-treatment questions
+  Q4 = sample(c(0,1), n, rep = TRUE),
+  Q5 = sample(c("treatment", "control"), n, rep = TRUE), #we will assume Q5 is the treatment
+  Q6 = sample(c(0,1), n, rep = TRUE), #post treatment questions
+  Q7 = sample(c(0,1), n, rep = TRUE),
+  Q8 = sample(c(0,1), n, rep = TRUE),
+  Q9 = sample(c(0,1), n, rep = TRUE),
+  Q10 = sample(c(0,1), n, rep = TRUE))
+
+#repeat for 4 plots
+df1<-df
+df2<-df
+df3<-df
+df4<-df
+
+#Generate attrition post
+invisible(
+  sapply(sample(1:nrow(df1), 150),function(x) {
+    a <- sample(1:10,1)
+    df1[x,a:ncol(df1)] <<- NA
+  }
+  ))
+
+a<-plot_withbars(data=df1, 
+                 title = "(a) Low Level Attrition")
+
+
+#Generate attrition pre-treatment
+invisible(
+  sapply(sample(1:nrow(df2), 450),function(x) {
+    a <- sample(1:4,1)
+    df2[x,a:ncol(df2)] <<- NA
+  }
+  ))
+
+b<-plot_withbars(data=df2, 
+                 title ="(b) Pre-treatment Attrition")
+
+
+
+#Generate post-treatment attrition (immediate)
+
+invisible(
+  sapply(sample(1:nrow(df3), 450),function(x) {
+    a <- sample(5:6,1)
+    df3[x,a:ncol(df3)] <<- NA
+  }
+  ))
+
+c<-plot_withbars(data=df3,
+                 title ="(c) Post-treatment Attrition (immediate)")
+
+
+#Generate post-treatment attrition (prolonged)
+invisible(
+  sapply(sample(1:nrow(df4), 450),function(x) {
+    a <- sample(6:10,1)
+    df4[x,a:ncol(df4)] <<- NA
+  }
+  ))
+
+d<-plot_withbars(data=df4,
+                 title ="(d) Post-treatment Attrition (prolonged)")
+
+
+#combine plots to one figure
+figure <- ggarrange(a + rremove("ylab") + rremove("xlab"), b + rremove("ylab") 
+                    + rremove("xlab"), c + rremove("ylab") + rremove("xlab"), 
+                    d + rremove("ylab") + rremove("xlab"), # remove axis labels from plots
+                    labels = NULL,
+                    ncol = 2, nrow = 2,
+                    common.legend = TRUE, legend = "top",
+                    align = "hv", 
+                    font.label = list(size = 10, color = "black", face = "bold", 
+                                      family = NULL, position = "top"))
+
+annotate_figure(figure, left = textGrob("Proportion of attrited", rot = 90, vjust = 1, gp = gpar(cex = 1.5)),
+                bottom = textGrob("Experiment Questions", gp = gpar(cex = 1.5)))
+
+```

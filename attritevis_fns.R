@@ -29,8 +29,7 @@ skip_to_attrite<-function(arg){
 
 #only works if you know the order of survey questions. 
 
-attrition <- function(data)
-{
+attrition <- function(data){
   #required packages
   require(ggplot2)
   require(viridis)
