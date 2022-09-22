@@ -1,10 +1,12 @@
-#Attritevis functions
-
+# Lotem's macbook, version: Sept 2022
 # ----------------------------------------------------------------------
 # Function 1: skip_to_attrite() [not available/necessary to users]
 # ----------------------------------------------------------------------
 
 #This function takes a matrix of 0,1s in which 1 indicates missingness (NA) per respondent per question and removes `skippers`. Skippers are individuals who have a 0s in their row followed by 1s.
+
+
+#skip_to_attrite function
 
 skip_to_attrite<-function(arg){
   n_col = length(arg)
@@ -21,6 +23,9 @@ skip_to_attrite<-function(arg){
   }
   return(arg)
 }
+
+
+
 # ----------------------------------------------------------------------
 # Function 2: attrition()
 # ----------------------------------------------------------------------
@@ -29,7 +34,8 @@ skip_to_attrite<-function(arg){
 
 #only works if you know the order of survey questions. 
 
-attrition <- function(data){
+attrition <- function(data)
+{
   #required packages
   require(ggplot2)
   require(viridis)
@@ -43,75 +49,76 @@ attrition <- function(data){
   if(class(data)!="data.frame")
     stop("Data must be data.frame")
   
+  #save original dataset
+  data_original<-data
+  
   #for each missing value in the dataframe `dataset` give value 1, otherwise give 0.
-  data <- apply(data,2,function(x) {ifelse(is.na(x),1,0)})
-  
+  data <- apply(data_original,2,function(x) {ifelse(is.na(x),1,0)})
+  #First, create `attrited` variable by removing skippers
   #change `skippers` into 0 (we are only interested in respondents that attrited).
+  data<-t(apply(data,1,skip_to_attrite))
+  data<-data.frame(colSums(data)) #sum the number of missing (minus skippers)
+  colnames(data)<- "missing"
+  #create variable `attrited` (completely left survey), rather than missing minus skippers  
+  data$attrited<-c(data[1,], data[-1,] - data[-nrow(data),])
+  #create variable `prop_q` = attrited / n entering into the question
+  data$n_prev<- Lag(nrow(data_original) - as.numeric(data$missing), +1)
+  data$n_prev[1] <- nrow(data_original)
+  data$prop_q <- round(data$attrited/data$n_prev,2)
+  #`proportion`= attrited / starting N
+  data$proportion <- round(data$attrited/nrow(data_original),2)
+  #add variable for question name
+  data$questions<-colnames(data_original)
   
-  data<-apply(data,1,skip_to_attrite)
-  data<-t(data) #transpose data
+  #Next, we also create a `responded` variable that takes the number of individuals who responded
+  #for each missing value in the dataframe `dataset` give value 0, otherwise give 1.
+  data2 <- apply(data_original,2,function(x) {ifelse(is.na(x),0,1)})
+  data2<-data.frame(colSums(data2)) #sum the number of responded
+  colnames(data2)<- "responded"
   
-  data2<-data.frame(data)
+  #create variable `prop_r` = responded / starting N
+  data2$prop_r <- round(data2$responded/nrow(data_original),2)
   
-  #transform into a long dataframe, such that the variable `attrited` is the number of missing observations per variable.
-  data <- data.frame(colSums(data2))
-  colnames(data) <- "attrited"
+  #combine the vars  
+  data$responded<-data2$responded
+  data$prop_r<-data2$prop_r
   
-  #transform `attrited` to measure how many respondents attrited during each question, rather than how many missing values are in each question.
-  attrite_2<-data$attrited
-  num_dropped <- data[-1,] - data[-nrow(data),]
-  data$attrited<- c(data[1,], num_dropped)
-  data$attrite_2<-attrite_2
+  data$missing<-NULL
+  data$n_prev<-NULL
   
-  #add variable `proportion` = number of attrited respondents / number of respondents entering into the question
-  data$n_prev <- nrow(data2) - as.numeric(data$attrite_2)
-  data$n_prev <- Lag(data$n_prev, +1)
-  data$n_prev[1] <- nrow(data2)
-  data$proportion_q <-    round(data$attrited/data$n_prev,2)
-  data$n_prev <- NULL
-  data$attrite_2 <- NULL
-  
-  #proportion of attrited / starting N
-  data$proportion <-    round(data$attrited/nrow(data2),2)
-  
-  #add variable `questions` = the name of each variable in the original dataframe.
-  data$questions <- rownames(data)
-  rownames(data) <- c()
-  data <- data[, c(4,1,3,2)]
+  rownames(data) <- c()    
   
   #return dataframe
   return(data)
 }
 
-#attrition_dataset<-attrition(data = df)
 
 # ----------------------------------------------------------------------
 # Function 3: plot_attrition()
 # ----------------------------------------------------------------------
 
-#Function that allows you to plot attrition in survey data.
+#Function that allows you to plot attrition/response in survey data over time.
 
 #`data` must be data.frame. Note that this function works only if the order of variables = order of questions in the survey.
 
-#`freq` is a logical argument that notes the Y axis of the attrition plot. Default is freq=TRUE, which is the frequency of attrited respondents. When freq=FALSE Y axis is the proportion of total N attrited, calculated as number of attrited respondents / number of respondents entering into the question.
+#`y` is a character that corresponds to the Y axis. When y = `attrited`, attrition is plotted. When y= `responded` responses are plotted. Default is y = `attrited`.
 
-#`treatment` is a character of name(s) of question(s) in which treatments were administered. Marked in the plot with a red vertical line.
+#`freq` is a logical argument that notes whether Y axis is a raw number or a proportion. Default is freq=TRUE, which is the frequency of attrited/responded respondents. When freq=FALSE Y axis is the proportion of total N (attrited/responded), calculated as number of attrited/responded divided by the number of respondents entering into the question.
 
-#`pre_treatment` is a character of name(s) of pre-treatment question(s). Marked in the plot with a green vertical line.
+#`treatment_q` is a character of name(s) of question(s) in which treatments were administered. Marked in the plot with a red vertical line.
 
-#`DV` is a character of name(s) of outcome question(s). Marked in the plot with a blue vertical line.
+#`outcome_q` is a character of name(s) of outcome question(s). Marked in the plot with a blue vertical line.
 
-#`other_group_var` is a character of name(s) of question(s), corresponds to `other_group` category, specified by users. Marked in the plot with a purple vertical line. Note that both `other_group` and `other_group_var` must be specified to use one of the functions.
+#`mycolors` is a character of color names to be used as values in `scale_colour_manual` argument in ggplot. Default is mycolors=NULL, which defaults to grayscale. `mycolors` must be == length of the unique values of the `treatment_q` variable.
 
-#`other_group` is a character of the name of the group of variables specified in `other_group_var`. Note that both `other_group` and `other_group_var` must be specified to use one of the functions.
+#`title` is a character to be used for plot title.
 
 plot_attrition <- function(data
+                           ,y = "attrited"
                            ,freq = TRUE
-                           ,treatment = NULL
-                           ,pre_treatment = NULL
-                           ,DV = NULL
-                           ,other_group = NULL
-                           ,other_group_var = NULL
+                           ,treatment_q = NULL
+                           ,outcome_q = NULL
+                           ,mycolors= NULL
                            ,title = NULL)
 { 
   #required packages
@@ -119,143 +126,274 @@ plot_attrition <- function(data
   require(viridis)
   require(Hmisc)
   require(dplyr)
+  require(ggrepel)
+  require(data.table)
   
-  #make sure arguments are correctly specified
+  #make sure arguments are correct
   if(is.null(data))
     stop("Data is null, please supply value")
   
   if(class(data)!="data.frame")
     stop("Data must be data.frame")
   
+  if((y != "attrited") & (y != "responded"))
+    stop("`y` must either be `attrited` or `responded`." )
+  
+  if(class(y)!="character")
+    stop("`y` must be a character.")
+  
+  if(class(treatment_q)!="NULL" & class(treatment_q)!="character")
+    stop("`treatment_q` must be a character.")
+  
+  if(class(outcome_q)!="NULL" & class(outcome_q)!="character")
+    stop("`outcome_q` must be a character.")
+  
+  if(class(mycolors)!="NULL" & class(mycolors)!="character")
+    stop("`mycolors` must be a character.")
+  
+  if(class(title)!="NULL" & class(title)!="character")
+    stop("`title` must be a character.")
+  
   if(class(freq)!="logical")
     stop("Freq must be logical. Default is freq=TRUE.")
   
-  if(!is.null(treatment) & class(treatment)!="character")
-    stop("Treatment must be character")
   
-  if(!is.null(pre_treatment) & class(pre_treatment)!="character")
-    stop("Pre_treatment must be character")
-  
-  if(!is.null(DV) & class(DV)!="character")
-    stop("DV must be character")
-  
-  if(!is.null(other_group) & class(other_group)!="character")
-    stop("Other_group must be character")
-  
-  if(!is.null(other_group_var) & class(other_group_var)!="character")
-    stop("Other_group_var must be character")
-  
-  #both other_group_var and group_var must be specified to use either:
-  if(!is.null(other_group_var) & is.null(other_group))
-    stop("Specify name of other_group")
-  
-  if(is.null(other_group_var) & !is.null(other_group))
-    stop("Specify other_group_var")
-  
-  
-  #Begin by creating an attrition dataframe
-  #for each missing value in the dataframe `dataset` give value 1, otherwise give 0.
-  data <- apply(data,2,function(x) {ifelse(is.na(x),1,0)})
-  
-  #change `skippers` into 0 (we are only interested in respondents that attrited).
-  
-  data<-apply(data,1,skip_to_attrite)
-  data<-t(data) #transpose data
-  
-  data2<-data.frame(data)
-  
-  #transform into a long dataframe, such that the variable `attrited` is the number of missing observations per variable.
-  data <- data.frame(colSums(data2))
-  colnames(data) <- "attrited"
-  
-  #transform `attrited` to measure how many respondents attrited during each question, rather than how many missing values are in each question.
-  attrite_2<-data$attrited
-  num_dropped <- data[-1,] - data[-nrow(data),]
-  data$attrited<- c(data[1,], num_dropped)
-  data$attrite_2<-attrite_2
-  
-  #add variable `proportion` = number of attrited respondents / starting N.
-  
-  # data$n_prev <- nrow(data2) - as.numeric(data$attrite_2)
-  # data$n_prev <- Lag(data$n_prev, +1)
-  # data$n_prev[1] <- nrow(data2)
-  # data$proportion_q <-   round(data$attrited/data$n_prev,2)
-  data$n_prev <- NULL
-  data$attrite_2 <- NULL
-  data$proportion <-    round(data$attrited/nrow(data2),2)
-  
-  #add variable `questions` = the name of each variable in the original dataframe.
-  data$questions <- rownames(data)
-  rownames(data) <- c()
-  data$questions <- factor(data$questions, levels=data$questions)
-  
-  #Next, plot attrition
-  #set colors for plots
-  tmp_colors<-viridis(n=2,alpha=0.6,begin=0.25,end=1,direction=1,option="D")
-  
-  #create figure for if treatment is not NULL and freq = TRUE
-  p <- data %>%
-    ggplot(aes(questions,{if(freq==FALSE){proportion}else{attrited}})) + 
-    #add if statement based on freq
+  if(!is.null(treatment_q)) {
+    #measure length of the treatment variable
+    data3 <- rename(data, cond_new = treatment_q)
+    new_treat<-na.omit(data3$cond_new)
+    #if length of mycolors is not equal fo length of treatment STOP
+    if(!is.null(mycolors)&(length(mycolors))!=length(unique(new_treat)))
+      stop("mycolors must be length of unique values of the `treatment_q`.")
     
-    geom_histogram(color="#e9ecef", alpha=0.6, stat = 'identity') +
+  }
+  
+  data_original<-data #save this original data for reference
+  
+  #create an attrition/response dataset for ALL observations (not by condition)
+  all_data<-attrition(data)
+  all_data$treatment<-"Total" 
+  #we only want to keep the following variables:
+  myvars <- c("attrited", "prop_q", "questions", "treatment", "responded", "prop_r")
+  all_data <- all_data[myvars]
+  
+  # if users sopecify treatment_q, we split data *by conditions*
+  if(!is.null(treatment_q)) {
     
+    data2 <- rename(data, cond_new = treatment_q) #create `cond_new` var based on conditions
+    data$cond_new<-data2$cond_new   
     
-    scale_fill_manual(values=tmp_colors) 
-  
-  #vlines
-  
-  #add vline for other_group, only if it isn't null
-  if(!is.null(other_group)) {
-    p <- p + geom_vline(data= data.frame(type=other_group, 
-                                         col=other_group, other_group_var = other_group_var),
-                        aes(colour=col, xintercept = match(other_group_var,data$questions)), #other_group_var), 
-                        size = 0.7, show.legend = TRUE)} 
-  
-  #add vline for pre_treatment, only if it isn't null   
-  if(!is.null(pre_treatment)){
-    p <- p + geom_vline(data= data.frame(type="Pre-Treatment", 
-                                         col="Pre-Treatment", pre_treatment = pre_treatment),
-                        aes(colour=col, xintercept = pre_treatment), 
-                        size = 0.7, show.legend = TRUE)}
-  #add vline for treatment, only if it isn't null   
-  if(!is.null(treatment)){
-    p <- p + geom_vline(data= data.frame(type="Treatment", 
-                                         col="Treatment", treatment = treatment),
-                        aes(colour=col, xintercept = treatment), 
-                        size = 1.5, show.legend = TRUE)}
-  
-  #add vline for DV, only if it isn't null   
-  if(!is.null(DV)){
-    p <- p + geom_vline(data= data.frame(type="Outcome", 
-                                         col="Outcome", DV = DV),
-                        aes(colour=col, xintercept = DV), 
-                        size = 0.7, show.legend = TRUE)} 
-  
-  #delete gray background  
-  
-  p <- p + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                 #  panel.background = element_rect(fill = "lavenderblush1"),
-                 #  plot.background = element_rect(fill = "lavenderblush1"),
-                 #  panel.background = element_rect(fill = "gray93"),
-                 #  plot.background = element_rect(fill = "gray93"),
-                 panel.background = element_blank(),
-                 axis.text.x = element_text(angle = 90, hjust = 1, size = 8))   
-  
-  #add legend details manually  
-  p<- p + scale_colour_manual(name="Legend"
-                              ,breaks = c("Pre-Treatment","Treatment","Outcome",other_group)
-                              ,labels = c("Pre-Treatment","Treatment","Outcome",other_group)
-                              ,values = c("goldenrod3","firebrick","royalblue3","seagreen")
-  ) +
-    labs(x = "Survey Questions") + #titles
-    labs(y = {if(freq==FALSE){"Proportion of respondents attrited"}
-      else{"Respondents attrited"}}) +#add if statement based on freq==FALSE
+    #split the dataset into a list by conditions
+    data_split<-split(data, with(data, cond_new), drop = TRUE)
     
-    ggtitle(if(is.null(title)){""}else{print(title)})
-  if(freq == FALSE){print(p+ylim(0,1))}else{print(p)} #define limits of Y axis if freq==FALSE
+    #for loop to account for attrition by condition
+    listofdfs1 <- list() 
+    listofdfs2 <- list() 
+    for (i in 1:length(data_split)) {
+      #first remove the `cond_new` var we created before
+      df<-as.data.frame(data_split[i])
+      df[ncol(df)]<-NULL
+      #for each missing value assign value 1, for complete response assign 0.
+      df<- apply(df,2,function(x) {ifelse(is.na(x),1,0)})
+      #apply "skip_to_attrite" to get rid of skippers
+      df<-t(apply(df,1,skip_to_attrite))
+      #sum the number of missing (minus skippers) per q
+      df<- data.frame(colSums(df))
+      #rename this variable `missing`
+      colnames(df)<- "missing"
+      #create variable `attrited`, rather than missing minus skippers
+      df$attrited<-c(df[1,], df[-1,] - df[-nrow(df),])
+      #`prop_q` = attrited / n entering into the question
+      df$n_prev<- Lag(nrow(data_original) - as.numeric(df$missing), +1)
+      df$n_prev[1] <- nrow(data_original)
+      df$prop_q <- round(df$attrited/df$n_prev,2)
+      #add variable for question name
+      df$questions<-colnames(data_original)
+      #based on rownames per dataset, create `treatment` var
+      df$treatment<-rownames(df)
+      df$treatment<-gsub("\\..*","",df$treatment)
+      
+      df$missing<-NULL
+      df$n_prev<-NULL
+      
+      #create `responded` variable.
+      df1<-as.data.frame(data_split[i])
+      df1[ncol(df1)]<-NULL
+      df1 <- apply(df1,2,function(x) {ifelse(is.na(x),0,1)})
+      df1<-data.frame(colSums(df1)) #sum the number of responded
+      colnames(df1)<- "responded"
+      
+      #create variable `prop_r` = responded / starting N
+      df1$prop_r <- round(df1$responded/nrow(data_original),2)
+      
+      #remove rownames
+      rownames(df) <- c()
+      #save as a list
+      listofdfs1[[i]] <- df
+      listofdfs2[[i]] <- df1
+    }
+    
+    #merge all datasets in the list
+    data_combined_a<- rbindlist(listofdfs1)
+    data_combined_b<- rbindlist(listofdfs2)
+    
+    data_combined_a$responded<-data_combined_b$responded
+    data_combined_a$prop_r<-data_combined_b$prop_r
+    
+    #merge the combined dataset with the `all` data
+    data<-rbindlist(list(all_data,data_combined_a))
+    
+  }else{data<-all_data}
   
-}
+  #create a vector for the unique values of the question names
+  question_names<-unique(data$questions)
+  #change question var to factor and numeric for plotting
+  data$questions <- factor(data$questions,
+                           levels=question_names)
+  data$questions2<-as.numeric(data$questions)
+  
+  if(!is.null(treatment_q)){
+    #create indicators for Vlines
+    #treatment Vline
+    treatment_vars<-as.data.frame(match(treatment_q, question_names))
+    colnames(treatment_vars) <- "treatment_q"
+    treatment_vars$label<-"Treatment Given" #labels
+    treatment_vars$color<- "black" #color of vline
+    #where the label appears on yaxis
+    if(freq==FALSE){treatment_vars$ynum<- 0.5}
+    if(freq==TRUE){treatment_vars$ynum<- nrow(data_original)/2}
+    treatment_vars$size<-1
+  }
+  
+  if(!is.null(outcome_q)){
+    #outcome Vline
+    DV<-as.data.frame(match(outcome_q, question_names))
+    colnames(DV) <- "outcome_q"
+    DV$label<-"Outcome Question"
+    DV$color<- "gray48"
+    if(freq==FALSE){DV$ynum<- 0.5}
+    if(freq==TRUE){DV$ynum<- nrow(data_original)/2}
+    DV$size<-1
+  }
+  
+  #if `freq=TRUE` and `y = "attrited"` we plot the frequency of attrited (y=attrited)
+  if(freq==TRUE & y == "attrited"){data$y<-data$attrited}
+  if(freq==TRUE & y == "attrited"){yname<-"Attrited"}
+  #if `freq=TRUE` and `y = "responded"` we plot the frequency of responded (y=responded)
+  if(freq==TRUE & y == "responded"){data$y<-data$responded}
+  if(freq==TRUE & y == "responded"){yname<-"Responded"}
+  #if `freq=FALSE` and `y = "attrited"` we plot the proportion of attrited (y=prop_q)
+  if(freq==FALSE & y == "attrited"){data$y<-data$prop_q}
+  if(freq==FALSE & y == "attrited"){yname<-"Proportion of Attrited"}
+  #if `freq=FALSE` and `y = "responded"` we plot the proportion of responded (y=prop_r)
+  if(freq==FALSE & y == "responded"){data$y<-data$prop_r}
+  if(freq==FALSE & y == "responded"){yname<-"Proportion of Responded"}
+  
+  if(!is.null(treatment_q)){
+    p <- data %>%
+      ggplot(aes(questions2,y, group = treatment)) +
+      
+      #scale x axis from 1:10
+      scale_x_continuous(breaks=unique(data$questions2),
+                         labels=question_names) + #label questions with Q
+      
+      #create geomlines for `treatment` and `control` 
+      geom_line(data = data, aes(questions2, y, 
+                                 color = treatment, 
+                                 linetype=treatment),
+                size = 1.1,
+                show.legend = FALSE) +
+      
+      #label `treatment` and `control`
+      
+      geom_text_repel(data = data %>% filter(questions2 == length(question_names)),
+                      aes(label = treatment, 
+                          x = questions2, 
+                          y = y, 
+                          color = treatment),
+                      min.segment.length = 0,
+                      show.legend = FALSE)+
+      
+      #add a geom_point
+      geom_point(size=2, aes(colour=factor(treatment), 
+                             fill = factor(treatment)), show.legend = FALSE) 
+    
+  }else{
+    
+    p <- data %>%
+      ggplot(aes(questions2,y)) +
+      #scale x axis from 1:10
+      scale_x_continuous(breaks=unique(data$questions2),
+                         labels=question_names) + #label questions with Q
+      geom_line(size = 1.1) +
+      #add a geom_point
+      geom_point(size=2) 
+    
+  }
+  
+  
+  if(!is.null(mycolors)) {p <- p + scale_colour_manual(values=c(Total = "gray", mycolors))}else{
+    p <- p + scale_colour_grey()
+  }
+  
+  #make treatment red and control blue
+  
+  #remove gray background
+  p <- p + theme(panel.grid.major = element_blank(), panel.grid.minor = 
+                   element_blank(), panel.background = element_blank(), 
+                 axis.line = element_line(colour = "black"),
+                 axis.text.x = element_text(angle = 90, hjust = 1, size = 8)) +
+    
+    labs(x = "Survey Questions", y = yname)
+  
+  
+  if(!is.null(title)){p <- p + ggtitle(title)}
+  
+  
+  if(freq==FALSE){p <- p + ylim (0, 1)}
+  if(freq==TRUE){p <- p + ylim (0, nrow(data_original))}
+  
+  # add title and labels to axis  
+  
+  if(!is.null(outcome_q)){
+    #add the vertical lines
+    p<-p +  
+      #DV vertical lines
+      annotate(geom = "vline",
+               x = c(DV$outcome_q),
+               xintercept = c(DV$outcome_q),
+               color = c(DV$color),
+               size = c(DV$size)) +
+      
+      annotate(geom = "text",
+               label = c(DV$label),
+               x = c(DV$outcome_q),
+               y = c(DV$ynum),
+               color = c(DV$color),
+               angle = 90, 
+               vjust = 1.5)
+  }
+  
+  
+  if(!is.null(treatment_q)){  
+    #treatments vertical lines
+    p<-p + annotate(geom = "vline",
+                    x = c(treatment_vars$treatment_q),
+                    xintercept = c(treatment_vars$treatment_q),
+                    color = c(treatment_vars$color),
+                    size = c(treatment_vars$size)) +
+      
+      annotate(geom = "text",
+               label = c(treatment_vars$label),
+               x = c(treatment_vars$treatment_q),
+               y = c(treatment_vars$ynum),
+               color = c(treatment_vars$color),
+               angle = 90, 
+               vjust = 1.5)
+  }
+  
+  print(p)
+}  
 
 
 # ----------------------------------------------------------------------
@@ -264,12 +402,15 @@ plot_attrition <- function(data
 
 #If question is factor, define value of `factor` you are interested in. For example, `female`. 
 
-balance_cov <- function(data, treatment = NULL, 
+balance_cov <- function(data, treatment, 
                         question,
-                        value = NULL,
                         factor = FALSE,
-                        factor_name = NULL)
+                        factor_name = NULL,
+                        p_adjust = NULL)
 { 
+  
+  #required packages
+  require(stats)
   
   #make sure arguments are correctly specified
   if(is.null(data))
@@ -278,10 +419,10 @@ balance_cov <- function(data, treatment = NULL,
   if(class(data)!="data.frame")
     stop("Data must be data.frame")
   
-  if(is.null(value) & is.null(treatment))
+  if(is.null(treatment))
     stop("Treatment is null, please supply value")
   
-  if(!is.null(treatment) & class(treatment)!="character")
+  if(class(treatment)!="character")
     stop("Treatment must be a character")
   
   if(is.null(question))
@@ -293,41 +434,26 @@ balance_cov <- function(data, treatment = NULL,
   if(class(factor)!="logical")
     stop("Factor must be logical. Default is factor=FALSE")
   
-  if((factor=FALSE) & !is.null(factor_name))
+  if((factor=FALSE) & is.null(factor_name))
     stop("Factor must be TRUE if factor_name is defined")
   
-  if(!is.null(factor_name) & class(factor_name)!="character")
-    stop("Factor must be character")
+  if(!is.null(factor_name)&class(factor_name)!="character")
+    stop("factor_name must be character")
   
-  if(!is.null(value) & !is.null(treatment))
-    stop("Covariate is being tested against specified `value`, 
-       please specify `treatment` == NULL")
+  if(!is.null(p_adjust)&class(p_adjust)!="numeric")
+    stop("p_adjust must be numeric")
   
   
-  if(!is.null(treatment) && is.null(value) && is.null(factor_name)){
-    
-    
-    data <- rename(data, question1 = question, 
-                   treatment1 = treatment)
-    
-    
-    #subset datasets based on treatment and control arms
-    
-    treat_data<-data[ which(data$treatment1=='treatment'), ]
-    control_data<- data[ which(data$treatment1=='control'), ]
-    
-    
+  #subset datasets based on treatment and control arms
+  data <- rename(data, question1 = question, 
+                 treatment1 = treatment)
+  
+  treat_data<-data[ which(data$treatment1=='treatment'), ]
+  control_data<- data[ which(data$treatment1=='control'), ]
+  
+  if(is.null(factor_name)){
     test <- t.test(treat_data$question1, control_data$question1) #if question is not a factor, run t.test
-  }
-  
-  #!is.null(treatment) & is.null(value) & is.null(factor))
-  if(!is.null(factor_name) && !is.null(treatment) && is.null(value) ){
-    data <- rename(data, question1 = question, 
-                   treatment1 = treatment)
-    
-    treat_data<-data[ which(data$treatment1=='treatment'), ]
-    control_data<- data[ which(data$treatment1=='control'), ]
-    
+  }else{
     
     #define factor treatment and control
     factor_treat<- treat_data[ which(treat_data$question1==factor_name), ]
@@ -345,16 +471,18 @@ balance_cov <- function(data, treatment = NULL,
     test <- prop.test(x,n)
   }
   
-  if(!is.null(value) && is.null(factor_name) && is.null(treatment)){
-    
-    data <- rename(data, question1 = question)
-    
-    test <- t.test(data$question1, mu = value)
-  }
   
   print(test)
+  
+  if(!is.null(p_adjust)){
+    
+    a<- p.adjust(p = p_adjust, method = "BH", n = length(p_adjust))
+    a<- data.frame(Original_p<-p_adjust,
+                   Adjusted_p<-a)
+    kable(a)
+  }  
+  
 }
-
 
 # ----------------------------------------------------------------------
 # Function 5: balance_attrite()
@@ -465,77 +593,84 @@ bounds <- function(data, treatment,
 # Function 7: attrition_table()
 # ----------------------------------------------------------------------
 
-attrition_table <- function(data, condition = NULL,
-                            treatment_var = NULL)
+attrition_table <- function(data, treatment_q = NULL)
 {
   #required packages
-  require(ggplot2)
-  require(viridis)
-  require(Hmisc)
-  require(dplyr)
   require(kableExtra)
   
-  #make sure arguments are correct
-  if(is.null(data))
-    stop("Data is null, please supply value")
+  list <- attrition(data)
+  list <- kable(list)
   
-  if(class(data)!="data.frame")
-    stop("Data must be data.frame")
-  
-  # if(condition!="both" | condition!="treatment" | condition!="control")
-  #stop("conditon must be named `treatment`, `control` or `both`")
-  
-  if(!is.null(condition)& is.null(treatment_var))
-    stop("treatment_var must be specified")
-  #for each missing value in the dataframe `dataset` give value 1, otherwise give 0.
-  if(is.null(condition)){
+  if(!is.null(treatment_q)){
     
-    data <- apply(data,2,function(x) {ifelse(is.na(x),1,0)})}else{
+    data <- rename(data, cond_new = all_of(treatment_q)) #create `cond_new` var based on conditions
+    data_split<-split(data, with(data, cond_new), drop = TRUE)
+    listofdfs<-list()
+    for (i in 1:length(data_split)) {
+      #first remove the `cond_new` var we created before
+      df<-as.data.frame(data_split[i])
+      df1<-attrition(df)
+      listofdfs[[i]] <- df1
       
-      data <-  rename(data,
-                      treatment_var = treatment_var)
+      #lapply(X = listofdfs, FUN = function(i) {
+      #kable(x = i, caption = gsub("\\..*","",colnames(df)[1]))})
       
-      data <- data[which(data$treatment_var == condition), ]
+      list <- lapply(X = listofdfs, FUN = function(i) {
+        knitr::kable(x = i, caption = i[1, treatment_q])})
       
-      data <- apply(data,2,function(x) {ifelse(is.na(x),1,0)})
-    }
+    }}
   
-  # data <- apply(data,2,function(x) {ifelse(is.na(x),1,0)})
-  
-  #change `skippers` into 0 (we are only interested in respondents that attrited).
-  
-  data<-apply(data,1,skip_to_attrite)
-  data<-t(data) #transpose data
-  
-  data2<-data.frame(data)
-  
-  #transform into a long dataframe, such that the variable `attrited` is the number of missing observations per variable.
-  data <- data.frame(colSums(data2))
-  colnames(data) <- "attrited"
-  
-  #transform `attrited` to measure how many respondents attrited during each question, rather than how many missing values are in each question.
-  attrite_2<-data$attrited
-  num_dropped <- data[-1,] - data[-nrow(data),]
-  data$attrited<- c(data[1,], num_dropped)
-  data$attrite_2<-attrite_2
-  
-  #add variable `proportion` = number of attrited respondents / number of respondents entering into the question
-  data$n_prev <- nrow(data2) - as.numeric(data$attrite_2)
-  data$n_prev <- Lag(data$n_prev, +1)
-  data$n_prev[1] <- nrow(data2)
-  data$proportion_q <-    round(data$attrited/data$n_prev,2)
-  data$n_prev <- NULL
-  data$attrite_2 <- NULL
-  
-  
-  #proportion of attrited / starting N
-  data$proportion <- round(data$attrited/nrow(data2),2)
-  
-  #add variable `questions` = the name of each variable in the original dataframe.
-  data$questions <- rownames(data)
-  rownames(data) <- c()
-  data <- data[, c(4,1,3,2)]
-  
-  return(kable(data))
+  list
   
 }
+
+
+# ----------------------------------------------------------------------
+# Function 8: vis_miss_treat()
+# ----------------------------------------------------------------------
+
+vis_miss_treat <- function(data ,treatment_q = NULL)
+  
+{ 
+  #required packages
+  require(visdat)
+  require(grid)
+  library(tidyverse)
+  
+  figure <- vis_miss(data)
+  
+  #split datasets
+  if(!is.null(treatment_q)){
+    data2 <- rename(data, cond_new = treatment_q) #create `cond_new` var based on conditions
+    data$cond_new<-data2$cond_new
+    data_split<-split(data, with(data, cond_new), drop = TRUE)
+    
+    listofdfs<-list()
+    list<-list()
+    
+    for (i in 1:length(data_split)) {
+      #first remove the `cond_new` var we created before
+      df<-as.data.frame(data_split[i])
+      colnames(df)<-colnames(data)
+      df$cond_new<-NULL
+      listofdfs[[i]] <- df
+      
+      list <- lapply(X = listofdfs, FUN = function(i) {
+        vis_miss(x = i) + theme(legend.position = "right") + 
+          geom_vline(xintercept = treatment_q
+                     ,colour = "red") + 
+          rremove("ylab") + 
+          ggtitle(i[1, treatment_q])})
+    }
+    
+    figure <-  ggarrange(plotlist=list, ncol = 1)
+    
+    figure <- annotate_figure(figure, left = textGrob("Observations", 
+                                                      rot = 90, vjust = 1, gp = gpar(cex = 1.5)))
+    
+  }
+  
+  print(figure)
+  
+} 
+

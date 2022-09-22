@@ -1,16 +1,16 @@
 ---
 title: 'Replication Code for Figures in `A Practical Guide to Dealing with Attrition in Political Science Experiments`'
-date: 'This version: February 2022'
+date: 'This version: September 2022'
 output: 
+  pdf_document: 
+    pandoc_args: ["--lua-filter=color-text.lua"]
+    keep_tex: true
   html_document: 
     pandoc_args: ["--lua-filter=color-text.lua"]
     toc: true
     toc_float: true
     number_sections: true
     theme: united
-  pdf_document: 
-    pandoc_args: ["--lua-filter=color-text.lua"]
-    keep_tex: true
 header-includes:
   - \preauthor{\centering\large}
   - \predate{\centering\normalsize}
@@ -168,208 +168,281 @@ waffle(case_counts, colors = c(
 
 ```{r timeline, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
 
-plot_withbars <- function(data, title)
-{ 
+#plot_attrition() function. 
+plot_attrition <- function(data
+                           ,treatment_a = NULL
+                           ,treatment_q = NULL
+                           ,outcome_q = NULL
+                           ,mycolors= NULL
+                           ,title = NULL)
+  { 
   #required packages
   require(ggplot2)
   require(viridis)
   require(Hmisc)
   require(dplyr)
- 
-  #Begin by creating an attrition dataframe
-  #for each missing value in the dataframe `dataset` give value 1, otherwise give 0.
-  data <- apply(data,2,function(x) {ifelse(is.na(x),1,0)})
-  
-  #change `skippers` into 0 (we are only interested in respondents that attrited).
-  
-  data<-apply(data,1,skip_to_attrite)
-  data<-t(data) #transpose data
-  
-  data2<-data.frame(data)
-  
-  #transform into a long dataframe, such that the variable `attrited` is the number of missing observations per variable.
-  data <- data.frame(colSums(data2))
-  colnames(data) <- "attrited"
-  
-  #transform `attrited` to measure how many respondents attrited during each question, rather than how many missing values are in each question.
-  attrite_2<-data$attrited
-  num_dropped <- data[-1,] - data[-nrow(data),]
-  data$attrited<- c(data[1,], num_dropped)
-  data$attrite_2<-attrite_2
-  
-  #add variable `proportion` = number of attrited respondents / starting N.
-  data$n_prev <- NULL
-  data$attrite_2 <- NULL
-  data$proportion <-    round(data$attrited/nrow(data2),2)
-  
-  #add variable `questions` = the name of each variable in the original dataframe.
-  data$questions <- rownames(data)
-  rownames(data) <- c()
-  
-  
-    tmp_colors<-viridis(n=2,alpha=0.6,begin=0.25,end=1,direction=1,option="D")
-    data$questions <- factor(data$questions, levels=data$questions)
-    data$questions<-as.numeric(data$questions)
+  require(ggrepel)
+  require(data.table)
 
-p <- data %>%
-  
-  ggplot(aes(questions,proportion)) +
-  
-  
-  geom_rect_pattern(aes(xmin= 4.7,
-                        xmax = 10,
-                        ymin = 0,
-                        ymax = Inf), 
-                    pattern = 'stripe',
-                    pattern_fill = 'pink',
-                    pattern_colour ='pink',
-                    pattern_size = 3.5,
-                    pattern_alpha = 0.02,
-                    pattern_density = 0.02,
-                    alpha = 0.02,
-                    fill    = 'white') +
-  
-  geom_rect_pattern(aes(xmin=1,
-                        xmax = 4.5,
-                        ymin = 0,
-                        ymax = Inf), 
-                    pattern = 'stripe',
-                    pattern_fill = 'gray',
-                    pattern_colour ='gray',
-                    pattern_size = 3.5,
-                    pattern_alpha = 0.02,
-                    pattern_density = 0.02,
-                    alpha = 0.02,
-                    fill    = 'white') +
-  
-  #add if statement based on freq
-  
-  geom_histogram(color="#e9ecef", alpha=0.6, stat = 'identity') +
-  
-  scale_x_continuous(breaks=c(1,2,3,4,5,6,7,8,9,10),
-                     labels=c("Q1", "Q2", "Q3", "Q4", "Q5","Q6","Q7","Q8"
-                              ,"Q9","Q10"))
+# rename the condition variable
+data_original<-data #save this original data for reference
+data2 <- rename(data, cond_new = treatment_a) #create `cond_new` var based on conditions
+data$cond_new<-data2$cond_new
 
-scale_fill_manual(values=tmp_colors) 
+#split the dataset into a list by conditions
+data_split<-split(data, with(data, cond_new), drop = TRUE)
 
-#vlines
-
-pre_treatment <- as.numeric(c(1,2,3,4))
-treatment <- as.numeric(5)
-DV<- as.numeric(c(6,7))
-post_treatment <- as.numeric(c(8,9,10))
-
-p <- p + geom_vline(data= data.frame(type="Pre-Treatment", 
-                                     col="Pre-Treatment", pre_treatment = pre_treatment),
-                    aes(colour=col, xintercept = pre_treatment), 
-                    size = 0.7, show.legend = TRUE)
-
-p <- p + geom_vline(data= data.frame(type="Treatment", 
-                                     col="Treatment", treatment = treatment),
-                    aes(colour=col, xintercept = treatment), 
-                    size = 2, show.legend = TRUE)
-
-p <- p + geom_vline(data= data.frame(type="Outcome", 
-                                     col="Outcome", DV = DV),
-                    aes(colour=col, xintercept = DV), 
-                    size = 0.7, show.legend = TRUE)
-
-p <- p + geom_vline(data= data.frame(type="Post-Treatment", 
-                                     col="Post-Treatment", post_treatment = post_treatment),
-                    aes(colour=col, xintercept = post_treatment), 
-                    size = 0.7, show.legend = TRUE)
-
-
-p <- p + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-               panel.background = element_blank(),
-               axis.text.x = element_text(angle = 90, hjust = 1, size = 8))   
-
-#add legend details manually  
-p<- p + scale_colour_manual(name="Legend"
-                            ,breaks = c("Pre-Treatment","Treatment",
-                                        "Outcome","Post-Treatment")
-                            ,labels = c("Pre-Treatment","Treatment",
-                                        "Outcome","Post-Treatment")
-                            ,values = c("goldenrod3","firebrick","royalblue3","seagreen")
-) +
-  labs(x = "Survey Questions") + #titles
-  labs(y = "Proportion of respondents attrited") +
-  ggtitle(title) + ylim(0,1) 
-
+#for loop to account for attrition by condition
+listofdfs <- list() 
+for (i in 1:length(data_split)) {
+  #first remove the `cond_new` var we created before
+    df<-as.data.frame(data_split[i])
+    df[ncol(df)]<-NULL
+  #for each missing value assign value 1, for complete response assign 0.
+    df<- apply(df,2,function(x) {ifelse(is.na(x),1,0)})
+  #apply "skip_to_attrite" to get rid of skippers
+    df<-t(apply(df,1,skip_to_attrite))
+  #sum the number of missing (minus skippers) per q
+    df1<- data.frame(colSums(df))
+  #rename this variable `missing`
+    colnames(df1)<- "missing"
+  #create variable `attrited`, rather than missing minus skippers
+    df1$attrited<-c(df1[1,], df1[-1,] - df1[-nrow(df1),])
+  #`prop_q` = attrited / n entering into the question
+    df1$n_prev<- Lag(nrow(df) - as.numeric(df1$missing), +1)
+    df1$n_prev[1] <- nrow(df)
+    df1$prop_q <- round(df1$attrited/df1$n_prev,2)
+  #`proportion`= attrited / starting N
+    df1$proportion <- round(df1$attrited/nrow(df),2)
+  #add variable for question name
+    df1$questions<-colnames(data_original)
+  #based on rownames per dataset, create `treatment` var
+    df1$treatment<-rownames(df1)
+    df1$treatment<-gsub("\\..*","",df1$treatment)
+  #remove rownames
+    rownames(df1) <- c()
+  #save as a list
+    listofdfs[[i]] <- df1
 }
 
+#merge all datasets in the list
+data_combined<- rbindlist(listofdfs)
 
+#create a vector for the unique values of the question names
+question_names<-unique(data_combined$questions)
+#change question var to factor and numeric for plotting
+data_combined$questions <- factor(data_combined$questions,
+                                  levels=question_names)
+data_combined$questions2<-as.numeric(data_combined$questions)
+
+
+#create indicators for Vlines
+#treatment Vline
+treatment_vars<-as.data.frame(match(treatment_q, question_names))
+colnames(treatment_vars) <- "treatment_q"
+treatment_vars$label<-"Treatment Given" #labels
+treatment_vars$color<- "black" #color of vline
+treatment_vars$ynum<- 0.5 #where the label appears on yaxis
+treatment_vars$size<-1
+
+#outcome Vline
+DV<-as.data.frame(match(outcome_q, question_names))
+colnames(DV) <- "outcome_q"
+DV$label<-"Outcome Question"
+DV$color<- "gray48"
+DV$ynum<- 0.5
+DV$size<-1
+
+p <- data_combined %>%
+      
+    ggplot(aes(questions2,prop_q, group = treatment)) +
+  
+        #scale x axis from 1:10
+       scale_x_continuous(breaks=unique(data_combined$questions2),
+       labels=question_names) + #label questions with Q
+   
+      #create geomlines for `treatment` and `control` 
+      geom_line(data = data_combined, aes(questions2, prop_q, 
+                             color = treatment, 
+                             linetype=treatment),
+                size = 1.1,
+                             show.legend = FALSE) +
+      
+      #label `treatment` and `control`
+
+      geom_text_repel(data = data_combined %>% filter(questions2 == length(question_names)),
+                aes(label = treatment, 
+                    x = questions2, 
+                    y = prop_q, 
+                    color = treatment),
+                min.segment.length = 0,
+                    show.legend = FALSE)+
+
+     #add a geom_point
+     geom_point(size=2, aes(colour=factor(treatment), 
+                            fill = factor(treatment)), show.legend = FALSE) 
+
+    if(!is.null(mycolors)) {p <- p+ scale_colour_manual(values=mycolors)}
+    
+     #make treatment red and control blue
+     
+    #remove gray background
+   p <- p + theme(panel.grid.major = element_blank(), panel.grid.minor = 
+          element_blank(), panel.background = element_blank(), 
+           axis.line = element_line(colour = "black")) +
+  
+    ylim (0, 1) +
+    # add title and labels to axis  
+    labs(x = "Survey Questions", y = "Proportion of attrited") +
+    ggtitle(title)
+
+#add the vertical lines
+a<-p +  
+    #DV vertical lines
+    annotate(geom = "vline",
+             x = c(DV$outcome_q),
+             xintercept = c(DV$outcome_q),
+             color = c(DV$color),
+             size = c(DV$size)) +
+  
+    annotate(geom = "text",
+             label = c(DV$label),
+             x = c(DV$outcome_q),
+             y = c(DV$ynum),
+             color = c(DV$color),
+             angle = 90, 
+             vjust = 1.5) + 
+  
+   #treatments vertical lines
+   annotate(geom = "vline",
+             x = c(treatment_vars$treatment_q),
+             xintercept = c(treatment_vars$treatment_q),
+             color = c(treatment_vars$color),
+             size = c(treatment_vars$size)) +
+  
+    annotate(geom = "text",
+             label = c(treatment_vars$label),
+             x = c(treatment_vars$treatment_q),
+             y = c(treatment_vars$ynum),
+             color = c(treatment_vars$color),
+             angle = 90, 
+             vjust = 1.5)
+print(a)
+}  
+  
+
+
+#Make toy plots for paper
+require(ggpattern)
+
+#(a) Low Level Attrition
 #Attition post-treatment (throughout survey)
 n <- 1000
 df <- data.frame(
-  Q1 = sample(c(18:90), n, rep = TRUE), #age
-  Q2 = sample(c("m", "f"), n, rep = TRUE, prob = c(0.55, 0.45)), #sex
-  Q3 = sample(c(0,1), n, rep = TRUE), #other general pre-treatment questions
-  Q4 = sample(c(0,1), n, rep = TRUE),
-  Q5 = sample(c("treatment", "control"), n, rep = TRUE), #we will assume Q5 is the treatment
-  Q6 = sample(c(0,1), n, rep = TRUE), #post treatment questions
-  Q7 = sample(c(0,1), n, rep = TRUE),
-  Q8 = sample(c(0,1), n, rep = TRUE),
-  Q9 = sample(c(0,1), n, rep = TRUE),
-  Q10 = sample(c(0,1), n, rep = TRUE))
+Q1 = sample(c("Treatment", "Control"), n, rep = TRUE), #we will assume conditions are assigned when entering survey
+Q2 = sample(c(18:90), n, rep = TRUE), #age
+Q3 = sample(c("m", "f"), n, rep = TRUE, prob = c(0.55, 0.45)), #sex
+Q4 = sample(c(0,1), n, rep = TRUE))#other general pre-treatment questions
+df$Q5 = df$Q1 #at Q5 respondents are presented with treatment (say, vignette)
+df$Q6 = sample(c(0,1), n, rep = TRUE) #post treatment questions
+df$Q7 = sample(c(0,1), n, rep = TRUE)
+df$Q8 = sample(c(0,1), n, rep = TRUE)
+df$Q9 = sample(c(0,1), n, rep = TRUE)
+df$Q10 = sample(c(0,1), n, rep = TRUE)
 
-#repeat for 4 plots
-df1<-df
-df2<-df
-df3<-df
-df4<-df
+df_a<-df
 
 #Generate attrition post
 invisible(
-  sapply(sample(1:nrow(df1), 150),function(x) {
+sapply(sample(1:nrow(df_a), 150),function(x) {
     a <- sample(1:10,1)
-    df1[x,a:ncol(df1)] <<- NA
-  }
-  ))
-
-a<-plot_withbars(data=df1, 
-                 title = "(a) Low Level Attrition")
+    df_a[x,a:ncol(df_a)] <<- NA
+}
+))
 
 
+
+#generate plot (a)
+a<-plot_attrition(data=df_a,
+              treatment_a = "Q1",
+              treatment_q = "Q5",
+              outcome_q =  c("Q6", "Q7"),
+              title = "(a) Low Level Attrition",
+              mycolors = c("#000066","#CC0033"))
+
+
+#(b) Pre-treatment Attrition
+df_b<-df
 #Generate attrition pre-treatment
 invisible(
-  sapply(sample(1:nrow(df2), 450),function(x) {
+sapply(sample(1:nrow(df_b), 700),function(x) {
     a <- sample(1:4,1)
-    df2[x,a:ncol(df2)] <<- NA
-  }
-  ))
-
-b<-plot_withbars(data=df2, 
-                 title ="(b) Pre-treatment Attrition")
+    df_b[x,a:ncol(df_b)] <<- NA
+}
+))
 
 
+#generate plot (b)
+b<-plot_attrition(data=df_b,
+              treatment_a = "Q1",
+              treatment_q = "Q5",
+              outcome_q =  c("Q6", "Q7"),
+              title = "(b) Pre-treatment Attrition",
+              mycolors = c("#000066","#CC0033"))
 
-#Generate post-treatment attrition (immediate)
 
+#(c) Post-treatment Attrition (immediate)
+df_c<-df
+
+#First, we generate some general attrition at treatment
 invisible(
-  sapply(sample(1:nrow(df3), 450),function(x) {
+sapply(sample(1:nrow(df_c), 500, 0.8*nrow(df_c)),function(x) {
     a <- sample(5:6,1)
-    df3[x,a:ncol(df3)] <<- NA
-  }
-  ))
+    df_c[x,a:ncol(df_c)] <<- NA
+}
+))
 
-c<-plot_withbars(data=df3,
-                 title ="(c) Post-treatment Attrition (immediate)")
+#second, we add some attrition that's correlated with the treatment
+#specifically, we want to demonstrate attrition that happens at a certain time 
+#to do so, we add a running var that will demonstrate time
+df_c$no<-rownames(df_c)
+df_c$Q6<-ifelse(df_c$Q5=="Treatment"&(df_c$no>100&df_c$no<300), NA,df_c$Q6)
+df_c$Q7<-ifelse(is.na(df_c$Q6),NA,df_c$Q7)
+df_c$Q8<-ifelse(is.na(df_c$Q6),NA,df_c$Q8)
+df_c$Q9<-ifelse(is.na(df_c$Q6),NA,df_c$Q9)
+df_c$Q10<-ifelse(is.na(df_c$Q6),NA,df_c$Q10)
+
+df_c$no<-NULL
+
+#generate plot (c)
+c<-plot_attrition(data=df_c,
+              treatment_a = "Q1",
+              treatment_q = "Q5",
+              outcome_q =  c("Q6", "Q7"),
+              title = "(c) Post-treatment Attrition (immediate)",
+              mycolors = c("#000066","#CC0033"))
 
 
-#Generate post-treatment attrition (prolonged)
+#(d) Post-treatment Attrition (prolonged)
+df_d<-df
+#Generate attrition at DV + after
 invisible(
-  sapply(sample(1:nrow(df4), 450),function(x) {
+sapply(sample(1:nrow(df_d), 700),function(x) {
     a <- sample(6:10,1)
-    df4[x,a:ncol(df4)] <<- NA
-  }
-  ))
+    df_d[x,a:ncol(df_d)] <<- NA
+}
+))
 
-d<-plot_withbars(data=df4,
-                 title ="(d) Post-treatment Attrition (prolonged)")
+#generate plot (d)
+d<-plot_attrition(data=df_d,
+              treatment_a = "Q1",
+              treatment_q = "Q5",
+              outcome_q =  c("Q6", "Q7"),
+              title = "(d) Post-treatment Attrition (prolonged)",
+              mycolors = c("#000066","#CC0033"))
 
+require(grid)
 
-#combine plots to one figure
 figure <- ggarrange(a + rremove("ylab") + rremove("xlab"), b + rremove("ylab") 
                     + rremove("xlab"), c + rremove("ylab") + rremove("xlab"), 
                     d + rremove("ylab") + rremove("xlab"), # remove axis labels from plots
@@ -381,6 +454,10 @@ figure <- ggarrange(a + rremove("ylab") + rremove("xlab"), b + rremove("ylab")
                                       family = NULL, position = "top"))
 
 annotate_figure(figure, left = textGrob("Proportion of attrited", rot = 90, vjust = 1, gp = gpar(cex = 1.5)),
-                bottom = textGrob("Experiment Questions", gp = gpar(cex = 1.5)))
+                    bottom = textGrob("Experiment Questions", gp = gpar(cex = 1.5)))
+
+
+vis_miss_treat(data=df_c,
+               treatment = "Q5")
 
 ```

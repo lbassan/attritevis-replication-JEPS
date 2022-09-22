@@ -1,25 +1,27 @@
 ---
 title: '`attritevis` \n Package: An R Vignette'
-date: 'This version: February 2022'
-output: 
-  html_document: 
-    pandoc_args: ["--lua-filter=color-text.lua"]
-    toc: true
-    toc_float: true
-    number_sections: true
+date: 'This version: September 2022'
+output:
+  html_document:
+    pandoc_args: --lua-filter=color-text.lua
+    toc: yes
+    toc_float: yes
+    number_sections: yes
     theme: united
-  pdf_document: 
-    pandoc_args: ["--lua-filter=color-text.lua"]
-    keep_tex: true
+  pdf_document:
+    pandoc_args: --lua-filter=color-text.lua
+    keep_tex: yes
+  word_document:
+    toc: yes
 header-includes:
-  - \preauthor{\centering\large}
-  - \predate{\centering\normalsize}
-  - \pretitle{\centering\Large\textbf}
-  - \usepackage{setspace}\onehalfspacing
-  - \usepackage{xcolor}
-  - \usepackage[shortlabels]{enumitem}
-  - \usepackage{pgf,tikz, mathabx}
-  - \usetikzlibrary{positioning}
+- \preauthor{\centering\large}
+- \predate{\centering\normalsize}
+- \pretitle{\centering\Large\textbf}
+- \usepackage{setspace}\onehalfspacing
+- \usepackage{xcolor}
+- \usepackage[shortlabels]{enumitem}
+- \usepackage{pgf,tikz, mathabx}
+- \usetikzlibrary{positioning}
 editor_options:
   chunk_output_type: console
 ---
@@ -127,7 +129,7 @@ Attrition, the loss of study units from a sample, can often occur throughout an 
 # Assumptions
 
 * Data must be *ordered by survey questions*, i.e. if respondents answered Q1 before Q2, the variable Q1 must appear before Q2 (i.e. in an earlier column) in the dataframe.
-* The functions in the package does not report skippers, i.e. respondents who skipped a question(s) but continued later in the survey, as attrited.
+* When attrition is defined as completely leaving the survey. Hence, when attrition is reported in the package it does not count skippers, i.e. respondents who skipped a question(s) but continued later in the survey, as attrited. In the function `plot_attrition` users can count skippers by setting y = "responded". 
 * For balance tests, treatment and control conditions must be defined. 
 
 # Functions
@@ -136,7 +138,13 @@ Attrition, the loss of study units from a sample, can often occur throughout an 
 
 ### Description 
 
-* Converts survey data into a frame that includes: `attrited` -- how many respondents attrited at each question, `proportion` -- calculated as *number of attrited respondents / number of respondents entering into the question*, `proportion_q` -- calculated as *number of attrited respondents / number of respondents entering into the question*. 
+* Converts survey data into a frame that includes: 
+
+    - `attrited` -- how many respondents attrited (left the survey) at each question. 
+    - `proportion` -- number of attrited respondents / number of respondents who entered survey.
+    - `prop_q` -- number of attrited respondents / number of respondents entering into the question.     - `questions` -- question names.
+    - `responded` -- how many respondents responded in each question.
+    - `prop_r` -- number of respondents who responded / number of respondents who entered survey.
 
 ### Arguments 
 
@@ -146,29 +154,34 @@ Attrition, the loss of study units from a sample, can often occur throughout an 
 
 ### Description 
 
-* Yields same data.frame as function `attrition`, but converts it into a table. Allows to subset table by treatment and control groups.
+* Yields same data.frame as function `attrition`, but converts it into a table. Allows to subset table by treatment and control groups, which yields several tables by condition.
 
 ### Arguments 
 
 * `data` - a `data.frame` where variables are ordered by survey questions, such that earlier survey questions appear in smaller valued columns.
-* `condition` -  a `string` character that corresponds to `treatment` or `control` condition.
-* `treatment_var` - a `string` character that corresponds to the name of the treatment variable.
+* `treatment_q` -  a `string` character that corresponds to treatment variable. When specified, the function yields several tables by condition.
 
 ## `plot_attrition()`
 
 ### Description 
 
-* Plots attrition across survey questions.
+* Plots attrition or response in survey data over time.
 
-### Arguments
+### Arguments 
 
-* `data` - a `data.frame` where variables are ordered by survey questions, such that earlier survey questions appear in smaller valued columns.
-* `freq` - a `boolean` that sets Y axis of the attrition plot. Default is `freq=TRUE`, which is the frequency of attrited respondents. When `freq=FALSE` Y axis is the proportion of total N attrited, calculated as number of attrited respondents / number of respondents entering into the question.
-* `treatment` - a `string` of name(s) of question(s) in which treatments were administered. Marked in the resulting plot with a red vertical line.
-* `pre_treatment` - a `string` of name(s) of pre-treatment question(s). Marked in the plot with a green vertical line.
-* `DV` - a `string` of name(s) of outcome question(s). Marked in the plot with a blue vertical line.
-* `other_group_var` - a `string` of name(s) of question(s), corresponds to `other_group` category, specified by users. Marked in the plot with a purple vertical line. Note that both `other_group` and `other_group_var` must be specified to use one of the functions.
-* `other_group` - a `string` of the name of the group of variables specified in `other_group_var`. Note that both `other_group` and `other_group_var` must be specified to use one of the functions.
+*`data` must be data.frame. Note that this function works only if the order of variables = order of questions in the survey. Users must remove irrelevant observations, for instance individuals who did not meet quotas, so as not to confuse them with attrited respondents. Note that using the qualtrics embedded data feature users can note which respondents failed an attention check or were removed since they did not meet a quota.
+
+*`y` is a character that corresponds to the Y axis. When y = `attrited`, attrition is plotted. When y= `responded` responses are plotted. Default is y = `attrited`.
+
+*`freq` is a logical argument that notes whether Y axis is a raw number or a proportion. Default is freq=TRUE, which is the frequency of attrited OR responded respondents. When freq=FALSE Y axis is the proportion of total N (attrited OR responded), calculated as number of attrited OR responded divided by the number of respondents entering into the question.
+
+*`treatment_q` is a character of name(s) of question(s) in which treatments were administered. Marked in the plot with a red vertical line.
+
+*`outcome_q` is a character of name(s) of outcome question(s). Marked in the plot with a blue vertical line.
+
+*`mycolors` is a character of color names to be used as values in `scale_colour_manual` argument in ggplot. Default is mycolors=NULL, which defaults to greyscale. `mycolors` must be == length of the unique values of the `treatment_q` variable. To use this argument, users should specify which color corresponds to which factor (for example, `treatment = "red"`).
+
+*`title` is a character to be used for plot title.
 
 ## `balance_cov()`
 
@@ -182,8 +195,8 @@ Attrition, the loss of study units from a sample, can often occur throughout an 
 * `treatment` - a `string` character that corresponds to the name of the treatment variable. Note that values of said variable must be specified as `treatment` and `control`.
 * `question` - a `string` character that corresponds to the name of the point in survey (question), for which balance test is required.
 * `factor` - logical argument that specifies whether `question` is a factor. Default is `factor = FALSE` (i.e. question is a numeric or integer).
-* `factor_name` - character that corresponds to specific factor (i.e. female), if question is a factor (i.e. sex). 
-* `value` - a number that corresponds to a value of interest, for which you can compare the mean of the covariate against. For example, a number indicating the true value of the mean in the population.
+* `factor_name` - character that corresponds to specific factor (i.e. female), if question is a factor (i.e. sex).
+* `p_adjust` - Vector of numbers that correspond to p-values obtained in all tests. Use this to adjust for p-values if running multiple tests.
 
 ## `balance_attrite()`
 
@@ -210,6 +223,18 @@ Attrition, the loss of study units from a sample, can often occur throughout an 
 * `DV` - a `string` character that corresponds to the name of the outcome variable.
 * `type` - character that corresponds to the type of bounds required (`"Manski"` or `"Lee"`). Default is `type = "Manski"`.
 
+
+## `vis_miss_treat()`
+
+### Description 
+
+* Calls the `vis_miss` function from `visdat` package. We allow users to facet missingness by conditions, creating several missingness maps per condition.
+ 
+### Arguments 
+
+* `data` - a data.frame.
+* `treatment_q` - a `string` character that corresponds to the name of the treatment variable. If treatment_q = NULL, missingness map appears for all data, when treatment_q is not NULL, missingness is faceted by condition.
+
 # Example
 
 Let's begin demonstrating the uses of `attritevis`, with a working example. We load test data from Lo, Renshon, and Bassan-Nygate 2021 (study 5B) which is an experimental survey study on whether peer-praise can encourage respondents to choose an empathy task. 
@@ -234,14 +259,20 @@ knitr::include_graphics("Figures/cards.png")
 
 After answering pre-treatment covariates, respondents in the study were asked to complete two practice rounds of the main empathy task. After completing the practice rounds, respondents complete three trials of the above mentioned tasks. Before each task, respondents are randomized into treatment and control groups. Treated respondents received the light-touch peer-praise treatment. During each trial, before respondents select between the FEEL and DESCRIBE tasks, happiness, the hypothesized mechanism, is measured. Treatment variables are labeled `treat1`, `treat2`, etc. Outcome variables, which are the choice-task card questions, are labeled `card1`, `card2`, etc. Mediators, which are measures of the emotion happiness, are labeled `Happy_1_1`, `Happy_1_2`... `Happy_2_1`, `Happy_2_2`... `Happy_3_1`, `Happy_3_1`, etc. After respondents complete all three trials post-task and post-treatment covariates are collected. Importantly, the dataframe `test_data` is organized based on the survey questions order. That is, if Q1 came before Q2 in the survey, the variable Q1 comes before the variable Q2 in the dataframe. 
 
-After loading the test data and ensuring that variables are ordered by survey questions, we may want to transform our dataframe to an attrition dataframe, using the function `attrition`. 
+After loading the test data and ensuring that variables are ordered by survey questions, we may want to transform our dataframe to an attrition dataframe, using the function `attrition`.
 
 ## Attrition dataframe
 ```{r attrition dataframe A, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
 attrition_data <- attrition(test_data)
 ```
 
-This function creates a frame that indicates, per variable, how many respondents attrited, as well as the proportion of attrited / starting N. `proportion_q` is calculated as *number of attrited respondents / number of respondents entering into the question*. 
+This function creates a frame that indicates, per question:
+
+    - `attrited` -- how many respondents attrited (left the survey) at each question. 
+    - `proportion` -- number of attrited respondents / number of respondents who entered survey.
+    - `prop_q` -- number of attrited respondents / number of respondents entering into the question.     - `questions` -- question names.
+    - `responded` -- how many respondents responded in each question.
+    - `prop_r` -- number of respondents who responded / number of respondents who entered survey.
 
 Using base `R` we can explore how many people attrited overall, and what proportion of the general population this is.
 
@@ -267,50 +298,82 @@ We can further create that of this dataframe using the function `attrition_table
 attrition_table(test_data)
 ```
 
-We can also use the arguments `condition` and `treatment_var` to examine the attrition table based on "treatment" or "control" conditions. The `treatment_var` is a character that corresponds to a specific variable, which is where the treatment was administered.
+We can also use the argument `treatment_q` to facet attrition table by condition. This is a character that corresponds to a specific variable, which is where the treatment conditions were administered.
 
-```{r arrtition table 2, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
-attrition_table(data= test_data, 
-                condition = "treatment",
-                treatment_var = "treat1"
+```{r arrtition table 2, results='asis'}
+attrition_table(data= test_data,
+                treatment_q = "treat1"
                 )
-
 ```
 
-## Plot attrition
+## Visualizing attrition
 
-We may want to visualize attrition across the survey, to look at all the survey questions at once. The function `plot_attrition` allows us to plot attrition across survey questions, indicating pre-treatment, treatment, mediators, and outcome questions with different color vertical lines.
+### Attrition timeline
+
+We may want to visualize attrition across the survey, to look at all the survey questions at once. The function `plot_attrition` allows us to plot attrition across survey questions, indicating where treatment and outcome questions were collected.
+
+There are several ways in which users can use this function. Simply plugging in the dataset into the function yields a figure that plots the number of respondents that attrited (left the survey completely) over each question in the study. 
 
 ```{r plot_attrition A, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+plot_attrition(test_data)  
+```
 
-plot_attrition(data = test_data
-               ,treatment = c("treat1", "treat2", "treat3")
-              ,pre_treatment = c("consent", "age", "sex", "education", "state", "income", "part_id", "race", "religion", "attrition_1", "attrition_2", "cards_a", "pa", "pb_1", "pb_2", "pb_3", "pc", "cards_b", "p2a", "p2b_1", "p2b_2", "p2b_3", "p2c")
-               ,DV = c("cards1", "cards2",  "cards3")
-               ,other_group = "Mediators"
-               ,other_group_var = c("Happy_1_1", "Happy_1_2", "Happy_1_3",
-                                    "Happy_2_1", "Happy_2_2", "Happy_2_3",
-                                    "Happy_3_1", "Happy_3_2", "Happy_3_3")
-               ,freq = TRUE
-               )  
+When users specify `freq=FALSE`, the y axis plots the proportion of attrited. 
+
+```{r plot_attrition B, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+plot_attrition(test_data,
+              freq=FALSE)  
+```
+
+Users can further specify `y="resonded"` to account for response, rather than attrition. This argument can be used with either freq=TRUE (default), or freq=FALSE, plotting response or proportion of responded, accordingly.
+
+```{r plot_attrition C, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+plot_attrition(test_data,
+              y="responded")  
+```
+
+Using the `outcome_q` argument, users can specify where outcome questions were measure. These are noted with gray vertical lines.
+
+```{r plot_attrition D, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+plot_attrition(test_data,
+              outcome_q = c("cards1", "cards2",  "cards3"))  
+```
+
+When `treatment_q`, which corresponds to treatment variable, is not NULL, the plot both notes where treatment was collected with a vertical line, and breaks down attrition by treatment conditions. 
+
+```{r plot_attrition E, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+plot_attrition(test_data,
+              y = "responded",
+              outcome_q = c("cards1", "cards2",  "cards3"),
+              treatment_q = "treat1")
 
 ```
 
-We can also specify `freq = FALSE` so that Y axis will indicate the proportion of total N attrited.
+Color default is greyscale, but users can use the `mycolors` argument to specify which colors they want to use to mark each conditions' geom_line. The length of `mycolors` must be equal to the length of unique(`treatment_q`). To use this argument, users should specify which color corresponds to which factor. See below the running example:
 
-```{r plot_attrition B, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+```{r plot_attrition F, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+plot_attrition(test_data,
+              y = "responded",
+              outcome_q = c("cards1", "cards2",  "cards3"),
+              treatment_q = "treat1",
+              mycolors = c(treatment = "#000066",
+                           control = "#CC0033"))
 
-plot_attrition(data = test_data
-               ,treatment = c("treat1", "treat2", "treat3")
-              ,pre_treatment = c("consent", "age", "sex", "education", "state", "income", "part_id", "race", "religion", "attrition_1", "attrition_2", "cards_a", "pa", "pb_1", "pb_2", "pb_3", "pc", "cards_b", "p2a", "p2b_1", "p2b_2", "p2b_3", "p2c")
-               ,DV = c("cards1", "cards2",  "cards3")
-               ,other_group = "Mediators"
-               ,other_group_var = c("Happy_1_1", "Happy_1_2", "Happy_1_3",
-                                    "Happy_2_1", "Happy_2_2", "Happy_2_3",
-                                    "Happy_3_1", "Happy_3_2", "Happy_3_3")
-               ,freq = FALSE
-               )  
+```
 
+### Vis miss
+
+Users can also visualize missingness with the `vis_miss_treat()` function that calls the `vis_miss` function from the `visdat` package.
+
+```{r vis miss A, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+vis_miss_treat(test_data)
+```
+
+`attritevis` allows users to facet missingness by conditions, creating several missingness maps per condition, and marks treatment variable with a red vertical line.
+
+```{r vis miss B, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+vis_miss_treat(test_data,
+               treatment_q = "treat1")
 ```
 
 ## Balance tests
@@ -334,20 +397,9 @@ balance_cov(data = test_data,
 
 The output is a t-test that determines whether there is a difference between the average age of the control group and the treatment group. We learn that age is balanced across treatment and control groups, with a mean of approximately 37.4 years old in treated respondents and 37.7 in controled respondents (p=0.7). 
 
-We can further compare the mean of the question of interest against the true mean of the population, if that value is available to us. To do so, we specify what the true value is using the `value` argument.
+We can also use the function `balance_cov()` when the covariate (`question`) is a factor, but we must specify which factor we are interested in. For example, let's say we want to test whether at the question `sex` in the survey missingness created observable differences across treatment and control groups. Sex is a factor variable with two factors: female and male. We can look at whether the proportion of female still remains similar across groups. To do so, we must determine that `factor = TRUE` and specify the `factor_name` (in this case, female).
 
 ```{r balance 2, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
-
-balance_cov(data = test_data, 
-        question = "age",
-        value = 38.4
-        )
-
-```
-
-Next, we can also use the function `balance_cov()` when the covariate (`question`) is a factor, but we must specify which factor we are interested in. For example, let's say we want to test whether at the question `sex` in the survey missingness created observable differences across treatment and control groups. Sex is a factor variable with two factors: female and male. We can look at whether the proportion of female still remains similar across groups. To do so, we must determine that `factor = TRUE` and specify the `factor_name` (in this case, female).
-
-```{r balance 3, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
 
 balance_cov(data = test_data, 
         treatment = "treat1", 
@@ -361,11 +413,24 @@ The output is a 2-sample proportion test. We learn that sex is also balanced bet
 
 There are certain post-treatment variables for which we may want to ensure balance across treatment and control as well. Note, however, that these should be variables that we hypothesize would stay stable after treatment. For example, we occasionally include demographic questions at the end of the survey to avoid survey fatigue before treatments. In our running example, the `ideology` question was collected post-treatment, but we expect it to stay stable across treatment and control.
 
-```{r balance 4, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+```{r balance 3, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
 
 balance_cov(data = test_data, 
         treatment = "treat1", 
         question = "ideology")
+
+```
+
+If users run several balance tests, we recommend adjusting p-values. `balance_cov` allows users to do so by specifying the p-values of the tests they ran (p_adjust).
+
+In our running example, since we ran three balance tests (with ideology, sex, and age), we want to adjust our p-values:
+
+```{r balance 3a, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+
+balance_cov(data = test_data, 
+        treatment = "treat1", 
+        question = "ideology",
+        p_adjust = c(0.7,0.3,0.3))
 
 ```
 
@@ -375,7 +440,7 @@ Next, we can check whether our treatment is correlated with attrition at any mom
 
 Using our visualization, we identified that attrition occurs at the post-treatment question `Happy_3_1`. We can use the function `balance_attrite()`, to examine whether our treatment caused attrition at this point in the survey:
 
-```{r balance 5, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+```{r balance 4, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
 
 balance_attrite(data = test_data, 
         treatment = "treat1", 
@@ -385,70 +450,85 @@ balance_attrite(data = test_data,
 
 We learn that our `treat1` does not affect attrition in variable `Happy_3_1`.
 
+
 # Simulated data
 
 As we demonstrated above, attrition doesn't seem to pose a threat to inference in our dataset. But what does it look like when attrition is an issue? We simulate attrition on `test_data` to demonstrate what this would look like. 
 
 ## Treatment causes attrition
 
-First, we simulate attrition such that the probability of of attrition in treated respondents is twice that of controlled respondents (0.3 vs. 0.15), in a new dataset called `test_sim`. We might see something like this if respondents are particularly taxed by a treatment in the survey and therefore more likely to drop out after receiving treatment.
+In a toy example (`test_sim`), suppose respondents enter a survey (Q1-Q10), where treatment is assigned at "Q5". We generate attrition such that treatment is causing respondents to drop out of the survey right after treatment. We might see something like this if respondents are particularly taxed by a treatment in the survey and therefore more likely to drop out after receiving treatment.
 
 ```{r simulate 1, include = FALSE}
 
-#figure out the proportion of treated respondents vs. controlled 
-#subset data based on treatment and control
-treated<-test_data[ which(test_data$treat1=='treatment'), ]
-controlled<- test_data[ which(test_data$treat1=='control'), ]
-missing_res<-test_data[ which(is.na(test_data$treat1)), ]
+#Attition post-treatment (throughout survey)
+n <- 1000
+test_sim <- data.frame(
+Q1 = "agree", #consent
+Q2 = sample(c(18:90), n, rep = TRUE), #age
+Q3 = sample(c("m", "f"), n, rep = TRUE, prob = c(0.55, 0.45)), #sex
+Q4 = sample(c(0,1), n, rep = TRUE),
+Q5 = sample(c("treatment", "control"), n, rep = TRUE), #treatment
+Q6 = sample(1:7, n, rep = TRUE),
+Q7 = sample(1:7, n, rep = TRUE),
+Q8 = sample(1:7, n, rep = TRUE),
+Q9 = sample(1:7, n, rep = TRUE),
+Q10 = sample(1:7, n, rep = TRUE))#other general pre-treatment questions
 
 
-#create attrition datasets
-treat_attrition<-attrition(treated)
-control_attrition<-attrition(controlled)
-#find proportion
-sum(treat_attrition$attrited)/nrow(treated)#0.14
-sum(control_attrition$attrited)/nrow(controlled)#0.15
-
-#We want to simulate attrition, such that treated respondents are attriting with probability 0.3, so we add 80  attrited and treated respondents.
-treated_sim<-treated
+#First, we generate some general attrition throughput
 invisible(
-sapply(sample(1:nrow(treated_sim), 80),function(x) {
-    a <- sample(24:72,1)
-    treated_sim[x,a:ncol(treated_sim)] <<- NA
+sapply(sample(1:nrow(test_sim), 500, 0.8*nrow(test_sim)),function(x) {
+    a <- sample(1:10,1)
+    test_sim[x,a:ncol(test_sim)] <<- NA
 }
 ))
 
-#Next, we merge `treated_sim` with the rest of the data
-test_sim <- do.call("rbind", list(treated_sim, controlled, missing_res))
+#second, we add some attrition that's correlated with the treatment
+#specifically, we want to demonstrate attrition that happens at a certain time 
+#to do so, we add a running var that will demonstrate time
+test_sim$no<-rownames(test_sim)
+test_sim$Q6<-ifelse(test_sim$Q5=="treatment"&(test_sim$no>200&test_sim$no<300), NA,test_sim$Q6)
+test_sim$Q7<-ifelse(is.na(test_sim$Q6),NA,test_sim$Q7)
+test_sim$Q8<-ifelse(is.na(test_sim$Q6),NA,test_sim$Q8)
+test_sim$Q9<-ifelse(is.na(test_sim$Q6),NA,test_sim$Q9)
+test_sim$Q10<-ifelse(is.na(test_sim$Q6),NA,test_sim$Q10)
+test_sim$no<-NULL
+
 ```
 
 ### Plot
 
-We demonstrate what attrition looks like in this new dataset, using the `plot_attrition()` function
+We visualize attrition using the `plot_attrition()` and `vis_miss_treat()` functions.
 
 ```{r plot_attrition sim1, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
 
-plot_attrition(data = test_sim
-               ,treatment = c("treat1", "treat2", "treat3")
-              ,pre_treatment = c("consent", "age", "sex", "education", "state", "income", "part_id", "race", "religion", "attrition_1", "attrition_2", "cards_a", "pa", "pb_1", "pb_2", "pb_3", "pc", "cards_b", "p2a", "p2b_1", "p2b_2", "p2b_3", "p2c")
-               ,DV = c("cards1", "cards2",  "cards3")
-               ,other_group = "Mediators"
-               ,other_group_var = c("Happy_1_1", "Happy_1_2", "Happy_1_3",
-                                    "Happy_2_1", "Happy_2_2", "Happy_2_3",
-                                    "Happy_3_1", "Happy_3_2", "Happy_3_3")
-               ,freq = FALSE
-               )  
+plot_attrition(test_sim,
+              treatment_q = "Q5",
+              outcome_q = c("Q7", "Q8",  "Q9"),
+              freq = FALSE,
+              mycolors = c(treatment = "#000066",
+                           control = "#CC0033")
+              )
 
 ```
 
+```{r vis miss sim1, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+
+vis_miss_treat(test_sim, treatment_q = "Q5")
+
+```
+
+We learn that attrition mostly occurs after Q6, and that treated respondents seem to be attriting more.
+
 ### Balance
 
-We learn that most respondents attrite at the post-treatment question `Happy_3_1`, and conduct a balance test. Note that `Happy_3_1` is a mediator, and we expect our treatment to affect it. It thus does not make sense to use the `balance_cov()` function. Instead, we want to examine whether our treatment caused attrition, and thus use the function `balance_attrite()`: 
+We learn that most respondents attrite at the post-treatment question `Q6`, and conduct a balance test. Note that `Q6` is an outcome, and we expect our treatment to affect it. It thus does not make sense to use the `balance_cov()` function. Instead, we want to examine whether our treatment caused attrition, and thus use the function `balance_attrite()`: 
 
 ```{r balance sim1, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
 balance_attrite(data = test_sim, 
-        treatment = "treat1", 
-        question = "Happy_3_1")
+        treatment = "Q5", 
+        question = "Q6")
 ```
 
 We learn that treated respondents are more likely to attrite, treatment is positively associated with attrition and is statistically significant.
@@ -457,188 +537,107 @@ We learn that treated respondents are more likely to attrite, treatment is posit
 
 Next, we use the function `bounds()` to to get extreme value (Manski) bounds. This function calls the function `estimator_ev` from the `attrition` package by Alex Coppock. `treatment` is the assignment indicator (Z). `DV` is the outcome of interest (Y). Our `bounds()` function removes respondents who attrited pre-treatment and calculates R (the respose indicator variable) based on missingness on the DV (missing=0, response=1), based on the assumptions drawn by Manski.
 
-```{r bounds manski 1, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+```{r plot bounds a1, include = FALSE}
+#manski bounds
 bounds(data = test_sim, 
-       treatment = "treat1",
-       DV = "cards1")
+       treatment = "Q5",
+       DV = "Q7")
+
 ```
 
 The default for the bounds type is `type = "Manski"`, but we can also specify the type of bounds such that `type = "Lee"` to get Trimming (Lee) bounds. Since we cannot defy the monotonicity assumption, Lee bounds cannot be yielded here, however we demonstrate the use of `type = "Lee"` in the next section.
 
-### Plot Bounds
-
-```{r plot bounds a, include = FALSE}
-#model simulated effect of treat1 on cards1
-model<-lm(cards1~treat1, data = test_sim)
-a<-as.data.frame(confint(model))
-original_model<- round(model$coefficients[2], digits = 3)
-original_model <- as.data.frame(original_model)
-original_model$Type <- "Simulated Model"
-original_model <- rename(original_model, 
-                estimate = original_model)
-original_model$low<-round(a$`2.5 %`[2],digits = 3)
-original_model$high<-round(a$`97.5 %`[2],digits = 3)
-
-#manski bounds
-manski_bounds<- as.data.frame(bounds(data = test_sim, 
-       treatment = "treat1",
-       DV = "cards1"))
-#create manski dataframe
-manski <- as.data.frame(original_model)
-manski$Type <- "Manski Bounds"
-manski$low <- round(manski_bounds$`bounds(data = test_sim, treatment = "treat1", DV = "cards1")`[1], digits = 3)
-manski$high <- round(manski_bounds$`bounds(data = test_sim, treatment = "treat1", DV = "cards1")`[2], digits = 3)
-#bound all models
-plot_bounds <- rbind(manski,original_model)
-rownames(plot_bounds) <- NULL
-```
-
-Finally, to visualize manski bounds on the estimate of treat1 on cards1, we plug all relevant values into a new dataframe (`plot_bounds`) and plot the estimate with Manki bounds and the original confidence intervals of the model from the simulated data.
-
-```{r plot bounds b, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
-plot_bounds
-
-ggplot(plot_bounds, aes(x = Type, y = estimate)) +
-  geom_errorbar(aes(ymin=low, ymax=high), width = 0.25,
-                size = 0.7, alpha = 1, color = "darkblue") +
-  geom_point(color = "red", size = 2, alpha = 0.6)+
-  labs(x = "   ",
-       y = "Effect size of treat1 on cards1") +
-  theme(text = element_text(size = 10, family = "Times"),
-        panel.grid.major = element_blank(), 
-        axis.text.x = element_text(size = 10),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank(), 
-        axis.line = element_line(colour = "black"))
-```
-
-
 ## Control causes attrition
 
-Next, we simulate attrition such that the probability of of attrition in controlled respondents is twice that of treated respondents (0.3 vs. 0.15), in a new dataset called `test_sim2`. We might see something like this if positive emotions (like happiness) are ramped up with treatment, making attrition less likely.
+We repeat this process, but instead we look at a case where control causes attrition in `test_sim2`. We might see something like this if positive emotions (like happiness) are ramped up with treatment, making attrition less likely.
 
 ```{r simulate 2, include = FALSE}
 
-#We want to simulate attrition, such that treated respondents are attriting with probability 0.3, so we add 80  attrited and treated respondents.
-controlled_sim<-controlled
+#Attition post-treatment (throughout survey)
+n <- 1000
+test_sim2 <- data.frame(
+Q1 = "agree", #consent
+Q2 = sample(c(18:90), n, rep = TRUE), #age
+Q3 = sample(c("m", "f"), n, rep = TRUE, prob = c(0.55, 0.45)), #sex
+Q4 = sample(c(0,1), n, rep = TRUE),
+Q5 = sample(c("treatment", "control"), n, rep = TRUE), #treatment
+Q6 = sample(1:7, n, rep = TRUE),
+Q7 = sample(1:7, n, rep = TRUE),
+Q8 = sample(1:7, n, rep = TRUE),
+Q9 = sample(1:7, n, rep = TRUE),
+Q10 = sample(1:7, n, rep = TRUE))#other general pre-treatment questions
+
+
+#First, we generate some general attrition throughput
 invisible(
-sapply(sample(1:nrow(controlled_sim), 80),function(x) {
-    a <- sample(24:72,1)
-    controlled_sim[x,a:ncol(controlled_sim)] <<- NA
+sapply(sample(1:nrow(test_sim2), 500, 0.8*nrow(test_sim2)),function(x) {
+    a <- sample(1:10,1)
+    test_sim2[x,a:ncol(test_sim2)] <<- NA
 }
 ))
 
-#Next, we merge `controled_sim` with the rest of the data
-test_sim2 <- do.call("rbind", list(treated, controlled_sim, missing_res))
-
+#second, we add some attrition that's correlated with the treatment
+#specifically, we want to demonstrate attrition that happens at a certain time 
+#to do so, we add a running var that will demonstrate time
+test_sim2$no<-rownames(test_sim2)
+test_sim2$Q6<-ifelse(test_sim2$Q5=="control"&(test_sim2$no>200&test_sim2$no<300), NA,test_sim2$Q6)
+test_sim2$Q7<-ifelse(is.na(test_sim2$Q6),NA,test_sim2$Q7)
+test_sim2$Q8<-ifelse(is.na(test_sim2$Q6),NA,test_sim2$Q8)
+test_sim2$Q9<-ifelse(is.na(test_sim2$Q6),NA,test_sim2$Q9)
+test_sim2$Q10<-ifelse(is.na(test_sim2$Q6),NA,test_sim2$Q10)
+test_sim2$no<-NULL
 
 ```
 
 ### Plot
 
-We demonstrate what attrition looks like in this new dataset, using the `plot_attrition()` function
+We visualize attrition using the `plot_attrition()` and `vis_miss_treat()` functions.
 
 ```{r plot_attrition sim2, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
 
-plot_attrition(data = test_sim2
-               ,treatment = c("treat1", "treat2", "treat3")
-              ,pre_treatment = c("consent", "age", "sex", "education", "state", "income", "part_id", "race", "religion", "attrition_1", "attrition_2", "cards_a", "pa", "pb_1", "pb_2", "pb_3", "pc", "cards_b", "p2a", "p2b_1", "p2b_2", "p2b_3", "p2c")
-               ,DV = c("cards1", "cards2",  "cards3")
-               ,other_group = "Mediators"
-               ,other_group_var = c("Happy_1_1", "Happy_1_2", "Happy_1_3",
-                                    "Happy_2_1", "Happy_2_2", "Happy_2_3",
-                                    "Happy_3_1", "Happy_3_2", "Happy_3_3")
-               ,freq = FALSE
-               )  
+plot_attrition(test_sim2,
+              treatment_q = "Q5",
+              outcome_q = c("Q7", "Q8",  "Q9"),
+              freq = FALSE,
+              mycolors = c(treatment = "#000066",
+                           control = "#CC0033")
+              )
 
 ```
+
+```{r vis miss sim2, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+
+vis_miss_treat(test_sim2, treatment_q = "Q5")
+
+```
+
+We learn that attrition mostly occurs after Q6, and that treated respondents seem to be attriting more.
 
 ### Balance
 
-We see that the figure is quite similar to the `test_sim` dataset. However, when we run a balance test we learn that treatment and attrition are negatively associated and statistically significant:
-
+We learn that most respondents attrite at the post-treatment question `Q6`, and conduct a balance test. Note that `Q6` is an outcome, and we expect our treatment to affect it. It thus does not make sense to use the `balance_cov()` function. Instead, we want to examine whether our treatment caused attrition, and thus use the function `balance_attrite()`: 
 
 ```{r balance sim2, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
 balance_attrite(data = test_sim2, 
-        treatment = "treat1", 
-        question = "Happy_3_1")
+        treatment = "Q5", 
+        question = "Q6")
 ```
+
+We learn that treated respondents are more likely to attrite, treatment is positively associated with attrition and is statistically significant.
 
 ### Bounds
 
-Next, we use the function `bounds()` to to get extreme value (Manski) bounds.
+Next, we use the function `bounds()` to to get extreme value (Manski) bounds and lee sharp bounds.
 
-```{r bounds Manski 2, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+```{r bounds manski 2, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
 bounds(data = test_sim2, 
-       treatment = "treat1",
-       DV = "cards1")
-```
+       treatment = "Q5",
+       DV = "Q8")
 
-We use the `bounds()` function to get Trimming (Lee) sharp bounds, which are smaller than Manski bounds.
-
-```{r bounds Lee 2, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+#lee sharp
 bounds(data = test_sim2, 
-       treatment = "treat1",
-       DV = "cards1",
+       treatment = "Q5",
+       DV = "Q7",
        type = "Lee")
+
 ```
-
-### Plot Bounds
-
-```{r plot bounds2, include = FALSE}
-#model simulated effect of treat1 on cards1
-model<-lm(cards1~treat1, data = test_sim2)
-a<-as.data.frame(confint(model))
-original_model<- round(model$coefficients[2], digits = 3)
-original_model <- as.data.frame(original_model)
-original_model$Type <- "Simulated Model"
-original_model <- rename(original_model, 
-                estimate = original_model)
-original_model$low<-round(a$`2.5 %`[2],digits = 3)
-original_model$high<-round(a$`97.5 %`[2],digits = 3)
-
-#manski bounds
-manski_bounds<- as.data.frame(bounds(data = test_sim2, 
-       treatment = "treat1",
-       DV = "cards1"))
-#create manski dataframe
-manski <- as.data.frame(original_model)
-manski$Type <- "Manski Bounds"
-manski$low <- round(manski_bounds$`bounds(data = test_sim2, treatment = "treat1", DV = "cards1")`[1], digits = 3)
-manski$high <- round(manski_bounds$`bounds(data = test_sim2, treatment = "treat1", DV = "cards1")`[2], digits = 3)
-
-#lee bounds
-lee_bounds<- as.data.frame(bounds(data = test_sim2, 
-       treatment = "treat1",
-       DV = "cards1",
-       type = "Lee"))
-#create lee dataframe
-lee<- manski
-lee$Type<-"Lee sharp Bounds"
-lee$low <- round(lee_bounds$`bounds(data = test_sim2, treatment = "treat1", DV = "cards1", type = "Lee")`[1], digits = 3)
-lee$high <- round(lee_bounds$`bounds(data = test_sim2, treatment = "treat1", DV = "cards1", type = "Lee")`[2], digits = 3)
-#bound all models
-plot_bounds <- rbind(manski,lee,original_model)
-rownames(plot_bounds) <- NULL
-```
-
-Finally, to visualize the different bounds on the estimate of treat1 on cards1, we plug all relevant values into a new dataframe (`plot_bounds`) and plot the estimate with Lee sharp bounds, Manki bounds, and the original confidence intervals of the model from the simulated data. Note that Lee sharp bounds are much smaller.
-
-```{r plot bounds3, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
-plot_bounds
-
-ggplot(plot_bounds, aes(x = Type, y = estimate)) +
-  geom_errorbar(aes(ymin=low, ymax=high), width = 0.25,
-                size = 0.7, alpha = 1, color = "darkblue") +
-  geom_point(color = "red", size = 2, alpha = 0.6)+
-  labs(x = "   ",
-       y = "Effect size of treat1 on cards1") +
-  theme(text = element_text(size = 10, family = "Times"),
-        panel.grid.major = element_blank(), 
-        axis.text.x = element_text(size = 10),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank(), 
-        axis.line = element_line(colour = "black"))
-```
-
-
