@@ -1,0 +1,402 @@
+---
+title: 'Replication Code for Figures in "A Practical Guide to Dealing with Attrition in Political Science Experiments"'
+date: 'This version: January 2023'
+output: 
+  html_document: 
+    pandoc_args: ["--lua-filter=color-text.lua"]
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: united
+  pdf_document: 
+    pandoc_args: ["--lua-filter=color-text.lua"]
+    keep_tex: true
+editor_options:
+  chunk_output_type: console
+---
+<style>
+
+table, td, th {
+  border: none;
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+</style>
+
+```{cat, engine.opts = list(file = "color-text.lua")}
+Span = function(span)
+  color = span.attributes['color']
+  -- if no color attribute, return unchange
+  if color == nil then return span end
+  
+  -- tranform to <span style="color: red;"></span>
+  if FORMAT:match 'html' then
+    -- remove color attributes
+    span.attributes['color'] = nil
+    -- use style attribute instead
+    span.attributes['style'] = 'color: ' .. color .. ';'
+    -- return full span element
+    return span
+  elseif FORMAT:match 'latex' then
+    -- remove color attributes
+    span.attributes['color'] = nil
+    -- encapsulate in latex code
+    table.insert(
+      span.content, 1,
+      pandoc.RawInline('latex', '\\textcolor{'..color..'}{')
+    )
+    table.insert(
+      span.content,
+      pandoc.RawInline('latex', '}')
+    )
+    -- returns only span content
+    return span.content
+  else
+    -- for other format return unchanged
+    return span
+  end
+end
+```
+
+<!-- # Packages: -->
+
+```{r,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+rm(list=ls())
+library(viridis)
+require(tidyverse)
+require(waffle)
+require(grid)
+require(ggpattern)
+require(ggpubr)
+require(devtools)
+
+#install our attritevis package
+install_github("lbassan/attritevis", dependencies = TRUE)
+
+```
+
+Code to replicate figures from the paper A Practical Guide to Dealing with Attrition in Political Science Experiments by Lo, Renshon, and Bassan-Nygate (2023).
+
+
+# Figure 1: 
+
+Data frame `lit_review.csv` summarizes experimental paper published in JEPS and their discussion of attrition. Below we create the waffle figure.
+
+```{r waffle, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+#Reading in CSV Data
+attrition <- read_csv("lit_review.csv")
+
+
+#Functions to remove "*" and change "Yes" to 1 and "No" to 0
+remove_star <- function(x) {
+  return(str_extract(x, "Yes|No"))
+}
+
+yesno_onezero <- function(x) {
+  return(case_when(x == "Yes" ~ 1,
+                   x == "No" ~ 0))
+}
+
+attrition <- attrition %>% 
+  mutate_at(c(7:14), remove_star) %>%
+  mutate_at(c(7:14), yesno_onezero)
+
+
+#Creating table of proportions
+prop_att <- mean(attrition$Attrition)
+prop_noatt <- mean(attrition$`0 Attrition`[attrition$Attrition == 1])
+prop_attdv <- mean(attrition$`Response Rate DV`[attrition$Attrition == 1])
+prop_quan <- mean(attrition$`Quantified Attrition`[attrition$Attrition == 1 & attrition$`0 Attrition` == 0 & attrition$`Response Rate DV` == 0])
+prop_adj <- mean(attrition$`Sample Adjustments`[attrition$Attrition == 1 & attrition$`0 Attrition` == 0 & attrition$`Response Rate DV` == 0])
+
+attrition_summary <- as_tibble(data.frame(
+  c("Measurement",
+    "Proportion that mention attrition",
+    "Proportion \"no attrition\"",
+    "Proportion DV",
+    "Proportion quantify",
+    "Proportion adjust"),
+  c("Value",
+    prop_att,
+    prop_noatt,
+    prop_attdv,
+    prop_quan,
+    prop_adj)
+))
+
+
+#Creating variable for the waffle plot
+count <- attrition %>% 
+  mutate(waffle = case_when(`Sample Adjustments` == 1 ~ "Attrition mentioned, quantified, analyzed",
+                            Attrition == 1 & `0 Attrition` == 0 & `Response Rate DV` == 0 & `Sample Adjustments` == 0 & `Quantified Attrition` == 1 ~ "Attrition mentioned and quantified",
+                            Attrition == 1 & `0 Attrition` == 0 & `Response Rate DV` == 0 & `Sample Adjustments` == 0 & `Quantified Attrition` == 0 ~ "Attrition mentioned only",
+                            `Response Rate DV` == 1 ~ "Attrition is DV",
+                            `0 Attrition` == 1 ~ "Attrition mentioned - none in study",
+                            Attrition == 0 ~ "No mention of attrition")) %>% 
+  group_by(waffle) %>%
+  summarise(n = n())
+
+#Reordering to make legend easier to read and plot look better
+count <- count[c(5,3,2,4,1,6),]
+
+#Creating waffle plot
+case_counts <- count$n
+names(case_counts) <- count$waffle
+
+plot1<-waffle(case_counts, colors = c(
+  "#fcba03", #For Attrition mentioned, quantified, analyzed
+  "#e8803f", #For Attrition mentioned and quantified
+  "#965ef7", #For Attrition mentioned, none in study
+  "#595959", #For Attrition mentioned only
+  "#5eccf7", #For Attrition is DV
+  "#ff6666"  #For No mention of attrition
+  )) +
+  theme(legend.key.size = unit(10, "mm"), legend.text = element_text(size = 12))
+
+plot1
+
+ggsave("Figures/plot1.png",
+       width = 7, height = 5,
+       plot1)
+
+```
+
+# Figure 3: 
+
+Attrition timeline visualization, we rely on the `attritevis` package, presented in the paper.
+
+```{r timeline, fig.keep = 'none', echo=TRUE, error=FALSE, warning=FALSE, message=FALSE}
+
+#Make toy plots for paper
+require(ggpattern)
+
+#(a) Low Level Attrition
+#Attition post-treatment (throughout survey)
+n <- 1000
+df <- data.frame(
+Q1 = sample(c("Treatment", "Control"), n, rep = TRUE), #we will assume conditions are assigned when entering survey
+Q2 = sample(c(18:90), n, rep = TRUE), #age
+Q3 = sample(c("m", "f"), n, rep = TRUE, prob = c(0.55, 0.45)), #sex
+Q4 = sample(c(0,1), n, rep = TRUE))#other general pre-treatment questions
+df$Q5 = df$Q1 #at Q5 respondents are presented with treatment (say, vignette)
+df$Q6 = sample(c(0,1), n, rep = TRUE) #post treatment questions
+df$Q7 = sample(c(0,1), n, rep = TRUE)
+df$Q8 = sample(c(0,1), n, rep = TRUE)
+df$Q9 = sample(c(0,1), n, rep = TRUE)
+df$Q10 = sample(c(0,1), n, rep = TRUE)
+
+df_a<-df
+
+#Generate attrition post
+invisible(
+sapply(sample(1:nrow(df_a), 150),function(x) {
+    a <- sample(1:10,1)
+    df_a[x,a:ncol(df_a)] <<- NA
+}
+))
+
+
+
+#generate plot (a)
+a<- attritevis::plot_attrition(data=df_a,
+                  freq = FALSE,
+              treatment_q = "Q1",
+              outcome_q =  c("Q6", "Q7"),
+              title = "(a) Low Level Attrition",
+              mycolors = c(Control="#000066",
+                           Treatment = "#CC0033"),
+              total = FALSE,
+              tline = FALSE)
+#note that treatment was administered in Q1 but `given` in Q5, so we manually input this
+
+a<-a + annotate(geom = "vline",
+                    x = 5,
+                    xintercept = 5,
+                    color = "black",
+                    size = 1) +
+
+      annotate(geom = "text",
+               label = "Treatment Given",
+               x = 5,
+               y = 0.5,
+               color = "black",
+               angle = 90,
+               vjust = 1.5)
+
+
+
+#(b) Pre-treatment Attrition
+df_b<-df
+#Generate attrition pre-treatment
+invisible(
+sapply(sample(1:nrow(df_b), 700),function(x) {
+    a <- sample(1:4,1)
+    df_b[x,a:ncol(df_b)] <<- NA
+}
+))
+
+
+#generate plot (b)
+b<-attritevis::plot_attrition(data=df_b,
+                  freq = FALSE,
+              treatment_q = "Q1",
+              outcome_q =  c("Q6", "Q7"),
+              title = "(b) Pre-treatment Attrition",
+              mycolors = c(Control="#000066",
+                           Treatment = "#CC0033"),
+              tline = FALSE,
+              total = FALSE)
+
+#note that treatment was administered in Q1 but `given` in Q5, so we manually input this
+
+b<-b + annotate(geom = "vline",
+                    x = 5,
+                    xintercept = 5,
+                    color = "black",
+                    size = 1) +
+
+      annotate(geom = "text",
+               label = "Treatment Given",
+               x = 5,
+               y = 0.5,
+               color = "black",
+               angle = 90,
+               vjust = 1.5)
+
+
+#(c) Post-treatment Attrition (immediate)
+df_c<-df
+
+#First, we generate some general attrition at treatment
+invisible(
+sapply(sample(1:nrow(df_c), 500, 0.8*nrow(df_c)),function(x) {
+    a <- sample(5:6,1)
+    df_c[x,a:ncol(df_c)] <<- NA
+}
+))
+
+#second, we add some attrition that's correlated with the treatment
+#specifically, we want to demonstrate attrition that happens at a certain time 
+#to do so, we add a running var that will demonstrate time
+df_c$no<-rownames(df_c)
+df_c$Q6<-ifelse(df_c$Q5=="Treatment"&(df_c$no>100&df_c$no<300), NA,df_c$Q6)
+df_c$Q7<-ifelse(is.na(df_c$Q6),NA,df_c$Q7)
+df_c$Q8<-ifelse(is.na(df_c$Q6),NA,df_c$Q8)
+df_c$Q9<-ifelse(is.na(df_c$Q6),NA,df_c$Q9)
+df_c$Q10<-ifelse(is.na(df_c$Q6),NA,df_c$Q10)
+
+df_c$no<-NULL
+
+c<-attritevis::plot_attrition(data=df_c,
+                  freq = FALSE,
+              treatment_q = "Q1",
+              outcome_q =  c("Q6", "Q7"),
+              title = "(c) Post-treatment Attrition (immediate)",
+              mycolors = c(Control="#000066",
+                           Treatment = "#CC0033"),
+              tline = FALSE,
+              total = FALSE)
+
+#note that treatment was administered in Q1 but `given` in Q5, so we manually input this
+
+c<-c + annotate(geom = "vline",
+                    x = 5,
+                    xintercept = 5,
+                    color = "black",
+                    size = 1) +
+
+      annotate(geom = "text",
+               label = "Treatment Given",
+               x = 5,
+               y = 0.5,
+               color = "black",
+               angle = 90,
+               vjust = 1.5)
+
+
+#(d) Post-treatment Attrition (prolonged)
+df_d<-df
+#Generate attrition at DV + after
+invisible(
+sapply(sample(1:nrow(df_d), 700),function(x) {
+    a <- sample(6:10,1)
+    df_d[x,a:ncol(df_d)] <<- NA
+}
+))
+
+
+d<-attritevis::plot_attrition(data=df_d,
+                  freq = FALSE,
+              treatment_q = "Q1",
+              outcome_q =  c("Q6", "Q7"),
+              title = "(d) Post-treatment Attrition (prolonged)",
+              mycolors = c(Control="#000066",
+                           Treatment = "#CC0033"),
+              tline = FALSE,
+              total = FALSE)
+
+#note that treatment was administered in Q1 but `given` in Q5, so we manually input this
+
+d<-d + annotate(geom = "vline",
+                    x = 5,
+                    xintercept = 5,
+                    color = "black",
+                    size = 1) +
+
+      annotate(geom = "text",
+               label = "Treatment Given",
+               x = 5,
+               y = 0.5,
+               color = "black",
+               angle = 90,
+               vjust = 1.5)
+
+
+require(grid)
+
+```
+
+
+```{r timeline_save, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+
+
+#save all plots in one figure
+
+plot2 <- ggarrange(a + rremove("ylab") + rremove("xlab"), b + rremove("ylab") 
+                    + rremove("xlab"), c + rremove("ylab") + rremove("xlab"), 
+                    d + rremove("ylab") + rremove("xlab"), # remove axis labels from plots
+                    labels = NULL,
+                    ncol = 2, nrow = 2,
+                    common.legend = TRUE, legend = "top",
+                    align = "hv", 
+                    font.label = list(size = 10, color = "black", face = "bold", 
+                                      family = NULL, position = "top"))
+
+  annotate_figure(plot2, left = textGrob("Proportion of attrited", rot = 90, vjust = 1, gp = gpar(cex = 1.5)),
+                    bottom = textGrob("Experiment Questions", gp = gpar(cex = 1.5)))
+
+
+ggsave("Figures/plot2.png",
+       width = 10,
+       height = 7,
+       plot2)
+
+```
+
+# Figure 4:
+
+Vis miss plot.
+
+```{r vismiss, echo=TRUE, eval=TRUE, message=FALSE,warning=FALSE}
+
+plot3<- attritevis::vis_miss_treat(data=df_c,
+               treatment = "Q5")
+
+
+ggsave("Figures/plot3.png",plot3)
+```

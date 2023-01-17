@@ -1,0 +1,132 @@
+Index,Year,Volume,Issue,Authors,Title,Survey Experiment,Multiple Studies,Attrition,Quantified Attrition,Sample Adjustments,Pilot Study,0 Attrition,Response Rate DV,Notes
+1,2014,1,1,Dawn Brancati,Building Confidence in Elections: The Case of Electoral Monitors in Kosova,Yes,No,No,No,No,No,No,No,
+2,2014,1,1,"Toby Bolsen, James N. Druckman, Fay Lomax Cook",Communication and Collective Actions: A Survey Experiment on Motivating Energy Conservation in the U.S.,Yes,No,No,No,No,No,No,No,
+3,2014,1,1,"Omar Al-Ubaydli, Kevin McCabe, Peter Twieg",Can More Be Less? An Experimental Test of the Resource Curse,No,No,No,No,No,No,No,No,
+4,2014,1,1,"Yanna Krupnikov, Adam Seth Levine",Cross-Sample Comparisons and External Validity,Yes,Yes,No,No*,No,No,No,No,
+5,2014,1,2,David E. Broockman,Mobilizing Candidates: Political Actors Strategically Shape the Candidate Pool with Personal Appeals,Yes,No,No,No,No,No,No,No,Found survey data and redid analysis.
+6,2014,1,2,"Scott Clifford, Jennifer Jerit",Is There a Cost to Convenience? An Experimental Comparison of Data Quality in Laboratory and Online Studies,Yes,No,No,No,No,No,No,No,"Online surveys + in person surveys, and compare which one gets better attention"
+7,2014,1,2,Adam R. Brown,Voters Don't Care Much About Incumbency,Yes,No,No,No,No,Yes,No,No,
+8,2014,1,2,"Andrew Healy, Alexander G. Kuo, Neil Malhotra",Partisan Bias in Blame Attribution: When Does it Occur?,Yes,No,No,No,No,No,No,No,
+9,2014,1,2,Alexander Coppock,Information Spillovers: Another Look at Experimental Estimates of Legislator Responsiveness,No,No,No,No,No,No,No,No,
+10,2014,1,2,"Vera Mironova, Sam Whitt",Ethnicity and Altruism After Violence: The Contact Hypothesis in Kosovo,No,No,Yes,Yes,No,No,Yes,No,No attrition in the study
+11,2014,1,2,Jonathan Woon,An Experimental Study of Electoral Incentives and Institutional Choice,No,No,Yes*,Yes*,No,No,No,No,Bomb threat shortened one study post DV capture. Sudden loss of respondents after certain rounds of dictator games. Shouldn't need adjustments.
+12,2015,2,1,Claire L. Adida,Do African Voters Favor Coethnics? Evidence from a Survey Experiment in Benin,Yes,Yes,Yes,Yes,No,Yes,No,No,
+13,2015,2,1,"Kevin Arceneaux, Martin Johnson",How Does Media Choice Affect Hostile Media Perceptions? Evidence from Participant Preference Experiments,No,Yes,No,No,No,No,No,No,
+14,2015,2,1,"Jessica Robinson Preece, Olga Bogach Stoddard",Does the Message Matter? A Field Experiment on Political Party Recruitment,No,No,Yes,No*,No,No,No,Yes,"Nonresponse rate is actual DV of interest, so no need to adjust."
+15,2015,2,1,"Joshua Ronald Gubler, Eran Halperin, Gilad Hirschberger",Humanizing the Outgroup in Contexts of Protracted Intergroup Conflict,Yes,Yes,Yes*,Yes,No,No,Yes,No,No attrition in the experiment (mentioned in the appendix)
+16,2015,2,1,"Torsten Jochem, Ilia Murtazashvili, Jennifer Murtazashvili",Social Identity and Voting in Afghanistan: Evidence from a Survey Experiment,Yes,No,Yes,Yes,No,No,No,No,
+17,2015,2,1,"Rosie Campbell, Philip Cowley",Attitudes to Moonlighting Politicians: Evidence from the United Kingdom,Yes,No,No,No,No,No,No,No,
+18,2015,2,1,Monique L. Lyle,Effects of Anti-Black Political Messages on Self-Esteem,No,No,No,No,No,No,No,No,
+19,2015,2,1,"Brendan Nyhan, Jason Reifler",Displacing Misinformation about Events: An Experimental Test of Causal Corrections,No,No,Yes*,Yes*,No,No,Yes,No,No attrition in the experiment (mentioned in appendix)
+20,2015,2,1,"Timothy N. Cason, Vai-Lam Mui",Individual versus Group Play in the Repeated Coordinated Resistance Game,No,No,No,No,No,No*,No,No,Coders for a section trained on pilot data but no pilot study mentioned.
+21,2015,2,2,"Kevin J. Mullinix, Thomas J. Leeper, James N. Druckman, Jeremy Freese",The Generalizability of Survey Experiments,Yes,Yes,No,No,No,No,No,No,
+22,2015,2,2,"Marco Battaglini, Lydia Mechtenberg",When Do Conflicting Parties Share Political Power?,No,No,No,No,No,No,No,No,
+23,2015,2,2,"Simone Dietrich, Matthew S. Winters",Foreign Aid and Government Legitimacy,Yes,No,No,No,No,No,No,No,
+24,2015,2,2,"Kathleen Searles, Kyle Mattes","It's a Mad, Mad World: Using Emotion Inductions in a Survey",Yes,Yes,No,No,No,Yes,No,No,
+25,2015,2,2,"Donald P. Green, Jonathan S. Krasno, Costas Panagopoulos, Benjamin Farrer, Michael Schwam-Baird",Encouraging Small Donor Contributions: A Field Experiment Testing the Effects of Nonpartisan Messages,No,No,Yes,No,No,No,No,Yes,Response rate is DV of interest (measuring donations from members of sample)
+26,2016,3,1,"Michael Callen, Clark C. Gibson, Danielle F. Jung, James D. Long",Improbing Electoral Integrity with Information and Communications Technology,No,No,Yes,Yes,Yes,No,No,No,"Noted whether or not election tallies were missing on arrival, included binary ""missing"" variable in analysis including OLS, provided N observations and complete analysis of Missing data"
+27,2016,3,1,Emily Beaulieu,Electronic Voting and Perceptions of Election Fraud and Fairness,Yes,Yes,Yes,Yes,No,No,No,No,Attrition mentioned and quantified in appendix
+28,2016,3,1,"Barbara Allen, Eric Lawrence, Daniel Stevens, John Sullivan",Partisanship and Perceptions of Fairness: Ignoring the Facts,Yes,No,Yes,Yes,No,No,No,No,Response rate and number of full interviews completed were both noted in the appendix
+29,2016,3,1,Gwyneth H. McClendon,Race and Responsiveness: An Experiment with South African Politicians,No,No,Yes,No,No,No,No,Yes,Response rate based on race was the DV of interest
+30,2016,3,1,"Simon Labbe St-Vincent, Andre Blais, Jean-Benoit Pilet",The Electoral Sweet Spot in the Lab,No,No,No,No,No,No,No,No,
+31,2016,3,1,"Paul R. Brewer, Michael Habegger, Ruby Harrington, Lindsay H. Hoffman, Philip Edward Jones, Jennifer L. Lambe",Interactivity between Cnadidates and Citizens on a Social Networking Site: Effects on Perceptions and Vote Intentions,Yes,No,Yes,Yes,No,No,No,No,Number of non-responses was taken at multiple stages.
+32,2016,3,1,"Yphtach Lelkes, Ariel Malka, Penelope Sheets",Deomocratic Like Us? Political Orientation and the Effect of Making Democracy Salient on Anti-Israel Attitude,Yes,No,No,No,No,No,No,No,
+33,2016,3,2,"Brendan Nyhan, Franklin Dickinson III, Sasha Dudding, Enxhi Dylgjeri, Eric Neiley, Christopher Pullerits, Minae Seog, Andy Simpson, Heather Szilagyi, Colin Walmsley",Classified or Coverup? The Effect of Redactions on Conspiracy Theory Beliefs,No,Yes,Yes,Yes,No,No,Yes,No,No known attrition
+34,2016,3,2,"Noah Buckley, Timothy Frye, Scott Gehlbach, Lauren A. McCarthy",Cooperating with the State: Evidence from Survey Experiments on Policing,Yes,No,No,No,No,No,No,No,Response rate measured but not attrition
+35,2016,3,2,"Mauro Barisione, Shanto Iyengar",Too Much an Out-Group? How Nonverbal Cues About Gender and Ethnicity Affect Candidate Support,Yes,No,Yes,Yes,No,No,No,No,"Attrition was ""less than 10%"""
+36,2016,3,2,"Conor M. Dowling, Michael G. Miller",Experimental Evidence on the Relationship Between Candidate Funding Sources and Voter Evaluations,Yes,No,No,No,No,No,No,No,
+37,2016,3,2,"Nathanael Gratias Sumaktoyo, David W. Nickerson, Michael J. Keane",Discussion Group Composition and Deliberation Experience,No,No,Yes,Yes,No,No,No,No,A space for incomplete observations was listed in the flow chart in the appendix but it was not stated if there was any attrition or not. Additionally it is mentioned that some members did not end up coming to the deliberation sessions and that adjustments were made.
+38,2016,3,2,"Timothy J. Ryan, Matthew S. Wells, Brice D. L. Acree",Emotional Responses to Disturbing Political News: The Role of Personality,Yes,No,No,No,No,No,No,No,Participation rate included but not attrition
+39,2016,3,2,Jan Sauermann,Committee Decisions under Majority Rule Revisited,No,No,Yes,Yes,No,No,Yes,No,No attrition in study
+40,2016,3,2,Taylor C. Boas,Pastors for Pinochet: Authoritarian Stereotypes and Voting for Evangelicals in Chile,Yes,No,Yes,Yes,Yes,No,No,No,Attrition analysis provided in appendix
+41,2017,4,1,"Sangick Jeon, Tim Johnson, Amanda Lea Robinson",Nationalism and Social Sanctioning Across Ethnic Lines: Experimental Evidence from the Kenya-Tanzania Border,No,No,Yes,Yes,No,No,No,No,
+42,2017,4,1,Thomas J. Leeper,How Does Treatment Self-Selection Affect Inferences About Political Communication?,No,No,Yes,Yes,No,No,No,No,
+43,2017,4,1,Jonathan Rogers,Nothing to Lose: Charitable Donations as Incentives in Risk Preference Measurement,No,No,Yes,Yes,No,No,Yes,No,No attrition in study
+44,2017,4,1,"Daniel M. Butler, Charles Crabtree",Moving Beyond Measurement: Adapting Audit Studies to Test Bias-Reducing Interventions,No,No,Yes,No,No,No,No,Yes,Response is DV
+45,2017,4,1,Kevin Arceneaux,Anxiety Reduces Empathy Toward Outgroup Members But Not Ingroup Members,Yes,Yes,No,No,No,No,No,No,
+46,2017,4,1,"Tetsuro Kobayashi, Asako Miura, Kazunori Inamasu",Media Priming Effect: A Preregistered Replication Experiment,No,No,No,No,No,No,No,No,Replication Experiment
+47,2017,4,2,"Erik Peterson, Gabor Simonovits",Costly Values: The Limited Benefits and Potential Costs of Targeted Policy Justifications,Yes,Yes,Yes,Yes,No,No,No,No,
+48,2017,4,2,"Donald P. Green, Adam Zelizer",How Much GOTV Mail is Too Much? Results from a Large-Scale Field Experiment,No,No,Yes,Yes,Yes,No,No,No,"Full attrition analysis, deemed to be insignificantly related to treatment"
+49,2017,4,2,"Thomas J. Scotto, Jason Reifler, David Hudson, Jennifer vanHeerde-Hudson","We Spend How Much? Misperceptions, Innumeracy, and Support for the Foreign Aid in the United States and Great Britain",Yes,No,No,No,No,No,No,No,
+50,2017,4,2,Rasmus T. Pedersen,Politicians Appear More Competent When Using Numerical Rhetoric,Yes,No,Yes,Yes,No,No,No,No,
+51,2017,4,2,"Michael Barber, David Gordon, Ryan Hill, Joseph Price",Status Quo Bias in Ballot Wording,No,No,No,No,No,No,No,No,
+52,2017,4,3,"Jan Lorenz, Fabian Paetzel, Markus Tepe",Just Don't Call it a Tax! Framing in an Experiment on Voting and Redistribution,No,No,No,No,No,No,No,No,
+53,2017,4,3,"Xiaojun Li, Ka Zeng",Individual Preferences for FDI in Developing Countries: Experimental Evidence from China,Yes,No,No,No,No,No,No,No,
+54,2017,4,3,"Michael M. Bechtel, Kenneth F. Scheve",Who Cooperates? Reciprocity and the Causal Effect of Expected Cooperation in Representative Samples,Yes,No,No,No,No,No,No,No,
+55,2017,4,3,Casey A. Klofstad,Looks and Sounds Like a Winner: Perceptions of Competence in Candidates' Faces and Voices Influences Vote Choice,Yes,Yes,No,No,No,No,No,No,
+56,2018,5,1,"Ethan C. Busby, James N. Druckman",Football and Public Opinion: A Partial Replication and Extension,Yes,No,No,No,No,No,No,No,Response rates were measured
+57,2018,5,1,Nan Zhang,"Institutions, Norms, and Accountability: A Corruption Experiment with Northern and Southern Italians",No,No,No,No,No,No,No,No,"""Full session was not always possible"""
+58,2018,5,1,"Ryan D. Enos, Christopher Celaya",The Effect of Segregation on Intergroup Relations,No,Yes,No,No,No,Yes,No,No,Noted no-shows and data thrown out
+59,2018,5,1,"Toni Alexander Ihme, Markus Tausendpfund",Gender Differences in Political Knowledge: Bringing Situation Back In,Yes,Yes,No,No,No,No,No,No,
+60,2018,5,1,"Ariel White, Anton Strezhnev, Christopher Lucas, Dominika Kruszewska, Connor Huff",Investigator Characteristics and Respondent Behavior in Online Surveys,Yes,No,Yes,Yes,No,No,No,No,Full attrition analysis in Appendix
+61,2018,5,1,"Daniel M. Butler, Miguel M. Pereira",Are Donations to Charity an Effective Incentive for Public Officials? ,Yes,No,No,No,No,No,No,No,
+62,2018,5,2,"Mark T. Buntaine, Lauren Prather",Preferences for Domestic Action Over International Transfers in Global Climate Policy,Yes,No,No,No,No,No,No,No,
+63,2018,5,2,"David C. Kingsley, Daniel Muise","More Talk, Less Need for Monitoring: Communication and Deterrence in a Public Good Game",No,No,No,No,No,No,No,No,
+64,2018,5,2,"Tabitha Bonilla, Cecilia Hyunjung Mo",Bridging the Partisan Divide on Immigration Policy Attitudes through a Bipartisan Issue Area: The Case of Human Trafficking,Yes,Yes,No,No,No,No,No,No,
+65,2018,5,2,Alexander W. Severson,Partisan Affiliation and the Evaluation of Non-Prototypical Candidates,Yes,No,No,No,No,No,No,No,
+66,2018,5,2,"Katerina Linos, Kimberly Twist",Diverse Pre-Treatment Effects in Survey Experiments,Yes,Yes,Yes*,Yes*,No,No,No,No,Recorded number of respondents who returned for second wave
+67,2018,5,2,"Ethan Porter, Thomas J. Wood, David Kirby","Sex Trafficking, Russian Infiltration, Birth Certificates, and Pedophilia: A Survey Experiment Correcting Fake News",Yes,No,No,No,No,No,No,No,
+68,2018,5,3,"Jennifer L. Merolla, Elizabeth J. Zechmeister",Threat and Information Acquisition: Evidence from an Eight Country Study,Yes,No,No,No,No,No,No,No,
+69,2018,5,3,Karyn Amira,Do People Contrast and Assimilate Candidate Ideology? An Experimental Test of the Projection Hypothesis,Yes,No,No*,No,No,No,No,No,A flow diagram is provided in the appendix but no attrition mentioned.
+70,2018,5,3,"Kris-Stella Trump, Ariel White",Does Inequality Beget Inequality? Experimental Tests of the Prediction that Inequality Increases System Justification Motivation,Yes,No,No,No,No,No,No,No,
+71,2018,5,3,"David J. Andersen, Richard R. Lau",Pay Rates and Subject Performance in Social Science Experiments Using Crowdsourced Online Samples,Yes,Yes,No,No,No,No,No,No,
+72,2018,5,3,Alexandre Morin-Chasse,How to Survey About Electoral Turnout? Additional Evidence,Yes,No,Yes,Yes,No,No,No,No,
+73,2019,6,1,"D.J. Flynn, Yanna Krupnikov",Misinformation and the Justification of Socially Undesireable Preferences,Yes,No,Yes*,Yes*,No,No,No,No,"Addresses ""missing data"" from skipping questions and participants who did not return for a re-contact study"
+74,2019,6,1,Anna Bassi ,"Weather, Risk, and Voting: An Experimental Analysis of the Effect of Weather on Vote Choice",No,No,No,No,No,No,No,No,
+75,2019,6,1,"Simona Demel, Abigail Barr, Luis Miller, Paloma Ubeda",Commitment to Political Ideology is a Luxury Only Students Can Afford: A Distributive Justice Experiment,No,No,Yes*,Yes*,No,No,No,No,Removed data from participants who didn't answer certain questions (DV)
+76,2019,6,1,"Mackenzie L. Israel-Trummel, Ariela Schachter",Does Shared Social Disadvantage Cause Black-Latino Political Commonality,Yes,No,Yes,Yes,No,No,No,No,
+77,2019,6,1,"Peter DeScioli, Erik O. Kimbrough",Alliance Formation in a Side-Taking Experiment,No,No,No,No,No,No,No,No,
+78,2019,6,2,"Elaine K. Denny, Jesse Driscoll",Calling Mogadishu: How Reminders of Anarchy Bias Survey Participation,Yes,No,No*,No,No,No,No,No,Mentions some people being more likely to skip quesitons 
+79,2019,6,2,"Peter John Loewen, Michael Kenneth MacKenzie",Service representation in a Federal System: A Field Experiment,No,No,No,No,No,No,No,No,
+80,2019,6,2,R. Joseph Huddleston,Think Ahead: Cost Discounting and External Validity in Foreign Policy Survey Experiments,Yes,No,No,No,No,No,No,No,
+81,2019,6,2,"Yue Hou, Kai Quek",Violence Exposure and Support for State Use of Force in a Non-Democracy,Yes,No,No,No,No,No,No,No,
+82,2019,6,2,"Efren O. Perez, Margit Tavits",Language Heightens the Political Salience of Ethnic Divisions,Yes,Yes,No*,No,No,No,No,No,Noted that no participants dropped the study at a particular point but no mention of overall attrition
+83,2019,6,3,"Rebecca B. Morton, Kai Ou",Public Voting and Prosocial Behavior,No,Yes,No,No,No,No,No,No,
+84,2019,6,3,"Simone Dietrich, Susan D. Hyde, Matthew S. Winters",Overseas Credit Claiming and Domestic Support for Foreign Aid,Yes,No,Yes,Yes,No,No,No,No,"listed number of surveys terminated early, only some of them were excluded."
+85,2019,6,3,"Adam Seth Levine, Reuben Kline",Loss-Framed Arguments Can Stifle Political Activism,Yes,Yes,Yes,No,No,No,No,Yes,Response rate is DV
+86,2019,6,3,"Scott E. Bokemper, Peter Descioli, Reuben Kline",Unfair Rules for Unequal Pay: Wage Discrimination and Procedural Justice,No,No,No,No,No,No,No,No,
+87,2019,6,3,"Claire Adida, Jessica Gottlieb, Eric Kramon, Gwyneth McClendon",Response Bias in Survey Measures of Voter Behavior: Implications for Measurement and Inference,Yes,No,No,No,No,No,No,No,
+88,2020,7,1,"Mathew D. McCubbins, Nicholas Weller","Coordination, Communication, and Information: How Network Structure and Knowledge Affect Group Behavior",No,No,No,No,No,No,No,No,
+89,2020,7,1,"Costas Panagopoulos, Kendall Bailey","""Friends-and-Neighbors"" Mobilization: A Field Experimental Replication and Extension",No,No,Yes,No,No,No,No,Yes,Voting participation rate is DV
+90,2020,7,1,"Max Schaub, Johanna Gereke, Delie Baldassarri",Does Poverty Undermine Cooperation in Multiethnic Settings? Evidence from a Cooperative Investment Experiment,Yes,No,No,No,No,No,No,No,"Didn't have access to appendix, study conducted on MTurk"
+91,2020,7,1,"Dan Chen, Andrew W. MacDonald",Bread and Circuses: Sports and Public Opinion in China,Yes,No,No,No,No,No,No,No,
+92,2020,7,1,"Brigitte Seim, Amanda Lea Robinson",Coethnicity and Corruption: Field Experimental Evidence from Public Officials in Malawi,No,No,No,No,No,No,No,No,
+93,2020,7,2,"Elizabeth N. Simas, Doug Murdoch","""I Didn't Lie, I Misspoke"": Voters' Responses to Questionable Campaign Claims",Yes,No,Yes,Yes,No,No,No,No,Excluded dropped out participants
+94,2020,7,2,"Nathan M. Jensen, Guillermo Rosas","Open for Politics? Globalization, Economic Growth, and Responsibility Attribution",Yes,Yes,No,No,No,No,No,No,
+95,2020,7,2,"Ryan E. Carlin, Gregory J. Love, Daniel J. Young","Political Competition, Partisanship, and Interpersonal Trust Under Party Dominance: Evidence from Post-Apartheid South Africa",No,Yes,Yes*,No,No,No,No,No,Mentions that some participants only completed some of the study
+96,2020,7,2,"Daniel J. Hopkins, Cheryl R. Kaiser, Efren O. Perez, Sara Haga, Corin Ramos, Michael Zarate",Does Perceiving Discrimination Influence Partisanship among U.S. Immigrant Minorities? Evidence from Five Experiments,No,Yes,No,No,No,No,No,No,
+97,2020,7,2,"Pablo Fernandez-Vazquez, Alexander G. Theodoridis","Believe It or Not? Partisanship, Preferences, and the Credibility of Campaign Promises",Yes,No,No,No,No,No,No,No,
+98,2020,7,2,"David Doherty, E. Scott Adler",Campaign Mailers and Intent to Turnout: Do Similar Field and Survey Experiments Yield the Same Conclusions?,Yes*,No,Yes,Yes,No,No,No,No,"Compares field and survey experiment, excluded participants who did not answer questions"
+99,2020,7,3,"Florian Foos, Fabrizio Gilardi",Does Exposure to Gender Role Models Increase Women's Political Ambition? A Field Experiment with Politicians,No,No,Yes,No,No,No,No,Yes,DV is response/attendence rate
+100,2020,7,3,Scott Williamson,Countering Misperceptions to Reduce Prejudice: An Experiment on Attitudes toward Muslim Americans,Yes,No,No,No,No,No,No,No,
+101,2020,7,3,"D. Alex Hughes, Micah Gell-Redman, Charles Crabtree, Natarajan Krishnaswami, Diana Rodenberger, Guilllermo Monge",Persistent Bias Among Local Election Officials,No,No,Yes,No,No,Yes,No,Yes,DV is response rate
+102,2020,7,3,"Mikael Persson, Klas Andersson, Par ZetterBerg, Joakim Ekman, Simon Lundin",Does Deliberate Education Increase Civic Competence? Results from a Field Experiment,No,No,No,No,No,No,No,No,
+103,2020,7,3,"Thomas J. Leeper, Emily A. Thorson",Should We Worry About Sponsorship-Induced Bias in Online Political Science Surveys?,Yes,No,No,No,No,No,No,No,
+104,2020,7,3,"Thomas Jamieson, Nicholas Weller",The Effects of Certain and Uncertain Incentives on Effort and Knowledge Accuracy,Yes,Yes,Yes,Yes,No,Yes,Yes,No,"""no meaningul issues with participant attrition"""
+105,2020,7,3,Christina Ladam,Does Process Matter? Direct Democracy and Citizens' Perceptions of Laws,Yes,Yes,No,No,No,No,No,No,
+106,2021,8,1,Lucy E. S. Martin,All Sins are not Created Equal: The Factors that Drive Perceptions of Corruption Severity,Yes,No,No,No,No,No,No,No,
+107,2021,8,1,"Leslie Marshall, Laura Paler","Class, Ethnicity, and Cooperatoin Among Women: Evidence from a Public Goods Experiment in Lebanon",No,No,Yes,No,No,Yes,No,No,
+108,2021,8,1,"Alexander Bor, Honorata Mazepus, Scott E. Bokemper, Peter DeScioli",When Should the Majority Rule? Experimental Evidence for Madisonian Judgements in Five Cultures,No,No,Yes,Yes*,No,No,No,No,Ranges provided in some scenarios
+109,2021,8,1,Christopher B. Mann,Can Conversing with a Computer Increase Turnout? Mobilization Using Chatbot Communication,No,No,No,No,No,No,No,No,
+110,2021,8,1,"Simon Hix, Eric Kaufmann, Thomas J. Leeper",Pricing Immigration,No,No,No,No,No,No,No,No,
+111,2021,8,1,Jon Kingzette,Who Do You loathe? Feelings toward Politicians vs. Ordinary People in the Opposing Party,Yes,No,No,No,No,No,No,No,
+112,2021,8,1,Mollie J. Cohen,Citizen Approval of Monetary- vs Goods-For-Votes Exchanges,Yes,No,No,No,No,No,No,No,
+113,2021,8,2,Stephen M. Utych,Messagin Mask Wearing During the COVID-19 Crisis: Ideological Differences,Yes,Yes,No,No,No,No,No,No,
+114,2021,8,2,Kevin Munger,Don't @ Me: Experimentally Reducing Partisan Incivility on Twitter,No,No,Yes,Yes,No,No,No,No,
+115,2021,8,2,Bryant J. Moy,Can Social Pressure Foster Responsiveness? An Open Records Field Experiment with Mayoral Offices,No,No,Yes,No,No,No,No,Yes,DV is response rate
+116,2021,8,2,"Jose Gabriel Castillo, John Hamman",Political Accountability and Democratic Institutions: An Experimental Assessment,No,No,No,No,No,No,No,No,
+117,2021,8,2,"Cassandra Handan-Nader, Daniel E. Ho, Alison Morantz, Tom A. Rutter",The Effectiveness of a Neighbor-to-Neighbor Get-Out-the-Vote Program: Evidence from the 2017 Virginia State Elections,No,No,Yes,Yes,No,No,No,No,
+118,2021,8,2,"Marko Klasnja, Noam Lupu, Joshua A. Tucker",When Do Voters Sanction Corrumpt Politicians,Yes,No,No,No,No,No,No,No,
+119,2021,8,2,"Danilo Freire, Umberto Mignozzetti, David Skarbek",Institutional Design and Elite Support for Climate Policies: Evidence from Latin American Countries,Yes,No,Yes,Yes,No,No,No,No,
+120,2021,8,2,"Matthew Nanes, Dotan Haim",Self-Administered Field Surveys on Sensitive Topics,Yes,No,Yes,No,No,Yes,No,Yes,DV is response rate
+121,2021,8,2,"Jared McDonald, James Igoe Walsh",The Costs of Conflict and Support for the Use of Force: Accounting for Infrmation Equivalence in Survey Experiments,Yes,Yes,Yes,No*,No,No,No,No,"""Cooperation rate"" is listed for two studies"
+122,2021,8,2,"Jonathan A. Chu, Marcus Holmes, David Traven",Inferring Intentions from Consequences: How Moral Judgments Shape Citizen Perceptions,Yes,Yes,No,No,No,No,No,No,
+123,2021,8,3,"Nicholas Kuipers, Saiful Mujani, Thomas Pepinsky",Encouraging Indonesians to Pray From Home During the COVID-19 Pandemic,Yes,No,No,No,No,No,No,No,
+124,2021,8,3,"James N. Druckman, Samara Klar, Yanna Krupnikov, Matthew Levendusky, John Barry Ryan",How Affective Polarization Shapes Americans' Political Beliefs: A Study of Response to the COVID-19 Pandemic,Yes,No,Yes,Yes,No,Yes,No,No,
+125,2021,8,3,"Donghyun Danny Choi, Mathias Poertner, Nicholas Sambanis",Linguistic Assimilation Does Not Reduce Discrimination Against Immigrants: Evidence from Germany,No,No,No,No,No,Yes,No,No,
+126,2021,8,3,"Sam Whitt, Alixandra B. Yanus, Brian McDonald, John Graeber, Mark Setzler, Gordon Ballingrud, Martin Kifer",Tribalism in America: Behavioral Experiments on Affective Polarization in the Trump Era,No,Yes,Yes,Yes,No,No,Yes,No,No Attrition
+127,2021,8,3,"Matthew J. Easton, John B. Holbein",The Democracy of Dating: How Political Affiliations Shape Relationship Formation,Yes,Yes,Yes,Yes,No,No,Yes,No,No Attrition
+128,2021,8,3,"Gabriele Magni, Zoila Ponce de Leon",Women Want an Answer! Field Experiments on Elected Officials and Gender Bias,No,No,Yes,No,No,No,No,Yes,DV is response rate
+129,2021,8,3,"Terence Wood, Chris Hoy, Jonathan Pryke",The Effect of Geostrategic Competition on Public Attitudes to Aid,Yes,No,No,No,No,No,No,No,
+130,2021,8,3,"Paul F. Testa, Tarah Williams, Kylee Britzman, Matthew V. Hibbing","Getting the Message? Choice, Self-Selection, and the Efficacy of Social Movement Arguments",Yes,Yes,No,No,No,No,No,No,
+131,2021,8,3,"Jean-Francois Daoust, Richard Nadeau, Ruth Dassonneville, Erick Lachapelle, Eric Belanger, Justin Savoie, Clifton van der Linden",How to Survey Citizens' Compliance with COVID-19 Public Health Measures: Evidence from Three Survey Experiments,Yes,Yes,Yes,Yes,No,No,No,No,
